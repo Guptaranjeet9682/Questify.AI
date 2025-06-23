@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Hub: Solver & Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- GLOBAL & CORE STYLES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            min-height: 100vh;
+            color: #1d1d1f;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* --- WELCOME SCREEN STYLES --- */
+        #welcomeScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            z-index: 2000;
+            text-align: center;
+            padding: 20px;
+            color: white;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            overflow-y: auto;
+        }
+
+        #welcomeScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #welcomeScreen h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        #welcomeScreen .welcome-text-container {
+            max-width: 550px;
+            margin: 15px auto 30px;
+            text-align: left;
+            line-height: 1.7;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        #welcomeScreen p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        #welcomeScreen ul {
+            list-style-position: inside;
+            padding-left: 5px;
+            margin-bottom: 15px;
+        }
+
+        .welcome-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .welcome-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 250px;
+        }
+
+        .welcome-btn:hover {
+            background: white;
+            color: #007AFF;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- MAIN APP CONTAINER (Initially Hidden) --- */
+        #mainAppContainer {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.5s ease;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header h1 { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
+        .header p { font-size: 16px; opacity: 0.9; }
+
+        .main-content { padding: 20px; }
+        .view-container { width: 100%; }
+
+        .subject-tabs { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; padding-bottom: 5px; }
+        .subject-tab { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; background: #f2f2f7; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
+        .subject-tab.active { background: #007AFF; color: white; }
+        .subject-tab .home-icon { font-size: 16px; margin-right: 5px; }
+
+        /* --- HELP BUTTON AND MODAL STYLES --- */
+        #helpFab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 30px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+        #helpFab:hover { transform: scale(1.1) rotate(15deg); }
+
+        #helpModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1002;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #helpModalContent {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        #helpModalContent h3 { margin-bottom: 15px; color: #1d1d1f; }
+        #helpModalContent p { font-size: 14px; color: #8e8e93; margin-bottom: 20px; }
+        
+        #helpTextarea {
+            width: 100%; min-height: 120px; padding: 15px; border: 1px solid #d1d1d6; border-radius: 12px;
+            font-size: 16px; resize: vertical; background: white; font-family: inherit; margin-bottom: 20px;
+        }
+        #helpTextarea:focus { outline: none; border-color: #007AFF; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); }
+
+        #closeHelpModalBtn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #8e8e93; }
+        
+        #sendHelpBtn {
+            width: 100%; background: linear-gradient(135deg, #007AFF, #5856D6); color: white; border: none;
+            padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
+        }
+
+        /* --- SOLVER STYLES --- */
+        #solverView .input-section { background: #f2f2f7; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .input-modes { display: flex; gap: 10px; margin-bottom: 15px; }
+        .mode-btn { flex: 1; padding: 10px; border: 1px solid #d1d1d6; background: white; border-radius: 10px; font-size: 14px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .mode-btn.active { background: #007AFF; color: white; border-color: #007AFF; }
+        .question-input { width: 100%; min-height: 100px; padding: 15px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; resize: vertical; background: white; font-family: inherit; transition: all 0.3s ease; }
+        .question-input:focus { outline: none; border-color: #007AFF; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); }
+        .image-upload-area { display: none; border: 2px dashed #d1d1d6; border-radius: 12px; padding: 40px 20px; text-align: center; background: white; cursor: pointer; transition: all 0.2s ease; }
+        .image-upload-area:hover { border-color: #007AFF; background: #f8f9ff; }
+        .upload-icon { font-size: 48px; color: #8e8e93; margin-bottom: 10px; }
+        .upload-text { color: #8e8e93; font-size: 16px; margin-bottom: 10px; }
+        .file-input { display: none; }
+        .uploaded-image { max-width: 100%; max-height: 300px; border-radius: 12px; margin: 15px 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .solve-btn { width: 100%; background: linear-gradient(135deg, #007AFF, #5856D6); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; margin-bottom: 20px; }
+        .solve-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3); }
+        .solve-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .loading { display: none; text-align: center; padding: 30px; }
+        .loading-spinner { width: 32px; height: 32px; border: 3px solid #f2f2f7; border-top: 3px solid #007AFF; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .result-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-bottom: 20px; display: none; transition: all 0.3s ease; }
+        .result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f2f2f7; }
+        .result-content { line-height: 1.6; color: #3a3a3c; }
+        .result-content h4 { color: #1d1d1f; margin: 15px 0 8px 0; font-weight: 600; }
+        .result-content p { margin-bottom: 12px; }
+        .result-content ul, .result-content ol { margin: 10px 0 10px 20px; padding-left: 15px; }
+        .result-content li { margin-bottom: 8px; }
+        .result-content code { background: #f2f2f7; padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 14px; }
+        .result-content pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 8px; overflow-x: auto; margin: 15px 0; }
+        .result-content pre code { background: none; padding: 0; font-family: 'SF Mono', Consolas, monospace; font-size: 14px; }
+        .error-alert { background: #ffe6e6; color: #d32f2f; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; border-left: 4px solid #d32f2f; }
+        #solverView .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-top: 30px; }
+        #solverView .feature-card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); transition: all 0.2s ease; }
+        #solverView .feature-card:hover { transform: translateY(-2px); }
+        .feature-icon { font-size: 32px; margin-bottom: 10px; }
+        .feature-title { font-weight: 600; margin-bottom: 5px; color: #1d1d1f; }
+        .feature-desc { font-size: 14px; color: #8e8e93; }
+        .remove-image-btn { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.7); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .image-container { position: relative; display: inline-block; }
+
+        /* --- QUIZ STYLES (SCOPED) --- */
+        #quizView { font-family: 'Poppins', sans-serif; }
+        #quizView .quiz-container { background-color: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 2rem; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); margin-bottom: 2rem; transition: background-color 0.5s ease; }
+        #quizView .quiz-info { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-weight: 600; }
+        #quizView .level-progress { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        #quizView .level-dot { width: 12px; height: 12px; border-radius: 50%; background-color: #e0e0e0; transition: background-color 0.3s ease; }
+        #quizView .level-dot.active { background-color: #6b48ff; transform: scale(1.2); }
+        #quizView .progress-container { width: 100%; height: 8px; background-color: #e0e0e0; border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
+        #quizView .progress-bar { height: 100%; width: 0%; background-color: #6b48ff; border-radius: 4px; transition: width 0.3s ease; }
+        #quizView .timer { text-align: center; font-size: 1.2em; font-weight: 600; margin-bottom: 1.5rem; color: #6b48ff; }
+        #quizView .timer.warning { color: #e74c3c; }
+        #quizView .question { font-size: 1.3em; margin-bottom: 1.5rem; font-weight: 600; line-height: 1.4; }
+        #quizView .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        #quizView .option { background-color: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s ease; font-weight: 400; text-align: center; }
+        #quizView .option:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); border-color: #6b48ff; }
+        #quizView .option.correct { background-color: #2ecc71; color: white; border-color: #2ecc71; }
+        #quizView .option.incorrect { background-color: #e74c3c; color: white; border-color: #e74c3c; }
+        #quizView .option.disabled { pointer-events: none; opacity: 0.7; }
+        #quizView .hint-btn, #quizView .next-btn, #quizView .restart-btn, #quizView .start-btn { background-color: #6b48ff; color: white; border: none; padding: 0.8rem 2rem; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        #quizView .hint-btn:hover, #quizView .next-btn:hover, #quizView .restart-btn:hover, #quizView .start-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2); }
+        #quizView .hint-btn { padding: 0.5rem 1rem; margin-bottom: 1.5rem; }
+        #quizView .hint-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; transform: none; box-shadow: none; }
+        #quizView .next-btn { display: none; margin: 0 auto; }
+        #quizView .modal, #quizView .welcome-modal, #quizView .exit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 1100; justify-content: center; align-items: center; }
+        #quizView .modal-content, #quizView .welcome-content, #quizView .exit-content { background-color: white; padding: 2rem; border-radius: 15px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); position: relative; }
+        #quizView .modal-close { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #2c3e50; }
+        #quizView .welcome-content h2, #quizView .exit-content h2 { margin-bottom: 1.5rem; color: #6b48ff; }
+        #quizView .welcome-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; text-align: left; }
+        #quizView .welcome-stat { padding: 0.8rem; background-color: rgba(107, 72, 255, 0.1); border-radius: 8px; }
+        #quizView .welcome-stat strong { display: block; margin-bottom: 0.3rem; color: #6b48ff; }
+        #quizView .results { display: none; text-align: center; }
+        #quizView .results h2 { margin-bottom: 1rem; font-size: 1.5em; }
+        #quizView .score-display { font-size: 1.8em; font-weight: 700; margin-bottom: 1rem; color: #6b48ff; animation: scorePop 0.5s ease; }
+        @keyframes scorePop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        
+        /* --- DARK MODE STYLES --- */
+        body.dark-mode { background: #000000; color: #e0e0e0; }
+        .dark-mode #mainAppContainer { background: #1c1c1e; color: #f5f5f7; box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }
+        .dark-mode .header { background: linear-gradient(135deg, #2c3e50, #4b79a1); }
+        .dark-mode .subject-tab { background: #2c2c2e; color: #e0e0e0; }
+        .dark-mode .subject-tab.active { background: #00ddeb; color: #1d1d1f; }
+        .dark-mode #solverView .input-section { background: #2c2c2e; }
+        .dark-mode .mode-btn { background: #3a3a3c; border-color: #555; color: #f5f5f7; }
+        .dark-mode .mode-btn.active { background: #00ddeb; color: #1d1d1f; border-color: #00ddeb; }
+        .dark-mode .question-input { background: #3a3a3c; color: white; border-color: #555; }
+        .dark-mode .question-input::placeholder { color: #8e8e93; }
+        .dark-mode .question-input:focus { border-color: #00ddeb; box-shadow: 0 0 0 3px rgba(0, 221, 235, 0.1); }
+        .dark-mode .image-upload-area { background: #3a3a3c; border-color: #555; }
+        .dark-mode .upload-text, .dark-mode .upload-icon { color: #aaa; }
+        .dark-mode .solve-btn { background: linear-gradient(135deg, #00ddeb, #6b48ff); }
+        .dark-mode .result-card { background: #2c2c2e; border-bottom-color: #444; }
+        .dark-mode .result-header { border-bottom-color: #3a3a3c; }
+        .dark-mode .result-content { color: #d1d1d6; }
+        .dark-mode .result-content h4 { color: #f5f5f7; }
+        .dark-mode .result-content code { background: #3a3a3c; }
+        .dark-mode .error-alert { background: #5c1f1f; color: #ffcccc; border-left-color: #e74c3c; }
+        .dark-mode #solverView .feature-card { background: #2c2c2e; }
+        .dark-mode .feature-title { color: #f5f5f7; }
+        .dark-mode .feature-desc { color: #aaa; }
+        /* Dark mode for help */
+        .dark-mode #helpFab { background: linear-gradient(135deg, #00ddeb, #6b48ff); }
+        .dark-mode #helpModalContent { background: #333; color: #e0e0e0; }
+        .dark-mode #helpModalContent h3 { color: #f5f5f7; }
+        .dark-mode #helpModalContent p { color: #aaa; }
+        .dark-mode #helpTextarea { background: #444; color: white; border-color: #666; }
+        .dark-mode #helpTextarea:focus { border-color: #00ddeb; }
+        .dark-mode #sendHelpBtn { background: linear-gradient(135deg, #00ddeb, #6b48ff); }
+        .dark-mode #closeHelpModalBtn { color: #aaa; }
+        /* Dark mode for quiz */
+        .dark-mode #quizView .quiz-container { background-color: rgba(30, 30, 30, 0.95); }
+        .dark-mode #quizView .level-dot { background-color: #34495e; }
+        .dark-mode #quizView .level-dot.active { background-color: #00ddeb; }
+        .dark-mode #quizView .progress-container { background-color: #34495e; }
+        .dark-mode #quizView .progress-bar { background-color: #00ddeb; }
+        .dark-mode #quizView .timer { color: #00ddeb; }
+        .dark-mode #quizView .option { background-color: #333; border-color: #444; color: #e0e0e0; }
+        .dark-mode #quizView .option:hover { border-color: #00ddeb; }
+        .dark-mode #quizView .hint-btn, .dark-mode #quizView .next-btn, .dark-mode #quizView .restart-btn, .dark-mode #quizView .start-btn { background-color: #00ddeb; }
+        .dark-mode #quizView .hint-btn:disabled { background-color: #555; }
+        .dark-mode #quizView .modal-content, .dark-mode #quizView .welcome-content, .dark-mode #quizView .exit-content { background-color: #333; color: #e0e0e0; }
+        .dark-mode #quizView .modal-close { color: #e0e0e0; }
+        .dark-mode #quizView .welcome-content h2, .dark-mode #quizView .exit-content h2 { color: #00ddeb; }
+        .dark-mode #quizView .welcome-stat { background-color: rgba(0, 221, 235, 0.1); }
+        .dark-mode #quizView .welcome-stat strong { color: #00ddeb; }
+        .dark-mode #quizView .score-display { color: #00ddeb; }
+
+
+        @media (max-width: 768px) {
+            #mainAppContainer { margin: 0; border-radius: 0; box-shadow: none; }
+            .main-content { padding: 15px; }
+            #quizView .options-grid { grid-template-columns: 1fr; }
+            #welcomeScreen h1 { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- WELCOME SCREEN -->
+    <div id="welcomeScreen">
+        <h1>🚀 QuizGenius AI</h1>
+        <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 20px;">Your All-in-One Learning Adventure!</p>
+    
+        <div class="welcome-text-container">
+            <p>💡 <strong>Instant AI Solver:</strong> Stuck on a problem? Get step-by-step answers in seconds!</p>  
+            <p>🎯 <strong>Engaging Quiz Game:</strong> Challenge yourself with fun trivia & level up your knowledge.</p>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 10px;">🔥 Why Choose QuizGenius AI?</h3>
+            <ul>
+                <li>✔ 100% Smart & Accurate</li>
+                <li>✔ Perfect for Students & Quiz Lovers</li>
+                <li>✔ Learn While Having Fun!</li>
+            </ul>
+            <p>📲 <strong>Ready to Begin?</strong> Tap <strong>"Start Solving"</strong> or <strong>"Play Quiz"</strong> now and unleash your genius!</p>  
+            <p style="margin-top: 15px; opacity: 0.8; font-size: 0.9em;">👉 <em>Pro Tip: Try our Daily Quiz Challenge for a brain boost!</em> 😉</p>
+        </div>
+    
+        <div class="welcome-options">
+            <button class="welcome-btn" data-choice="solver">Start Solving</button>
+            <button class="welcome-btn" data-choice="quiz">Play Quiz</button>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="mainAppContainer">
+        <div class="header">
+            <h1 id="appTitle">Question Solver AI</h1>
+            <p id="appSubtitle">Solve problems with text or images</p>
+        </div>
+
+        <div class="main-content">
+            <div class="subject-tabs">
+                <button class="subject-tab" data-view="home"><span class="home-icon">🏠</span> Home</button>
+                <button class="subject-tab active" data-view="solver" data-subject="general">General</button>
+                <button class="subject-tab" data-view="solver" data-subject="hindi">Hindi</button>
+                <button class="subject-tab" data-view="solver" data-subject="english">English</button>
+                <button class="subject-tab" data-view="solver" data-subject="math">Math</button>
+                <button class="subject-tab" data-view="solver" data-subject="physics">Physics</button>
+                <button class="subject-tab" data-view="solver" data-subject="chemistry">Chemistry</button>
+                <button class="subject-tab" data-view="solver" data-subject="biology">Biology</button>
+                <button class="subject-tab" data-view="quiz">🎮 Quiz Game</button>
+            </div>
+
+            <!-- SOLVER VIEW -->
+            <div id="solverView" class="view-container">
+                 <div class="input-section">
+                    <div class="input-modes">
+                        <button class="mode-btn active" data-mode="text">✍️ Text Question</button>
+                        <button class="mode-btn" data-mode="image">📷 Upload Image</button>
+                    </div>
+                    <div id="textMode">
+                        <textarea id="questionInput" class="question-input" placeholder="Type your question here..."></textarea>
+                    </div>
+                    <div id="imageMode" class="image-upload-area">
+                        <div class="upload-icon">📤</div>
+                        <div class="upload-text"><strong>Upload an image</strong><br>Drag & drop or click</div>
+                        <input type="file" id="imageInput" class="file-input" accept="image/*">
+                    </div>
+                    <div id="imagePreview"></div>
+                </div>
+                <button class="solve-btn" id="solveBtn">Solve Question</button>
+                <div class="error-alert" id="errorAlert"></div>
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div><p>AI is analyzing...</p>
+                </div>
+                <div class="result-card" id="resultCard">
+                    <div class="result-header"><span style="font-size: 20px;">✅</span><h3>Solution</h3></div>
+                    <div class="result-content" id="resultContent"></div>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card"><div class="feature-icon">🌐</div><div class="feature-title">Multi-Language</div><div class="feature-desc">Hindi & English</div></div>
+                    <div class="feature-card"><div class="feature-icon">📚</div><div class="feature-title">All Subjects</div><div class="feature-desc">Math, Science, etc.</div></div>
+                    <div class="feature-card"><div class="feature-icon">🖼️</div><div class="feature-title">Image Support</div><div class="feature-desc">Upload questions</div></div>
+                    <div class="feature-card"><div class="feature-icon">🤖</div><div class="feature-title">Instant AI</div><div class="feature-desc">Powered by Gemini</div></div>
+                </div>
+            </div>
+
+            <!-- QUIZ VIEW -->
+            <div id="quizView" class="view-container" style="display: none;">
+                <div class="welcome-modal" id="quiz-welcome-modal">
+                    <div class="welcome-content">
+                        <h2>Ready for the Challenge?</h2>
+                        <div class="welcome-stats" id="welcome-stats"></div>
+                        <p style="font-size: 14px; color: #8e8e93; margin-top: 1rem; margin-bottom: 1.5rem;">Click "Start Quiz" to begin the challenge!</p>
+                        <button class="start-btn" id="startQuizActualBtn">Start Quiz</button>
+                    </div>
+                </div>
+
+                <section id="quiz" class="quiz-container" style="display:none;">
+                    <h2>General Knowledge Quiz</h2>
+                    <div class="quiz-info">
+                        <div class="level">Level: <span id="current-level">1</span>/<span id="total-levels">15</span></div>
+                        <div class="question-number">Question: <span id="current-question">1</span>/<span id="total-questions">5</span></div>
+                        <div class="score">Score: <span id="current-score">0</span></div>
+                    </div>
+                    <div class="level-progress">
+                        <div class="level-dot" data-level="1"></div><div class="level-dot" data-level="2"></div><div class="level-dot" data-level="3"></div><div class="level-dot" data-level="4"></div><div class="level-dot" data-level="5"></div><div class="level-dot" data-level="6"></div><div class="level-dot" data-level="7"></div><div class="level-dot" data-level="8"></div><div class="level-dot" data-level="9"></div><div class="level-dot" data-level="10"></div><div class="level-dot" data-level="11"></div><div class="level-dot" data-level="12"></div><div class="level-dot" data-level="13"></div><div class="level-dot" data-level="14"></div><div class="level-dot" data-level="15"></div>
+                    </div>
+                    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+                    <div class="timer" id="timer">30</div>
+                    <div class="question" id="question-text"></div>
+                    <div class="options-grid" id="options-container"></div>
+                    <button class="hint-btn" id="hint-btn">Get Hint (-5 points)</button>
+                    <button class="next-btn" id="next-btn">Next</button>
+                    <div class="results" id="results">
+                        <h2>Quiz Completed!</h2><div class="score-display" id="final-score"></div>
+                        <button class="restart-btn" id="restart-btn">Play Again</button>
+                    </div>
+                </section>
+
+                <div class="modal" id="hint-modal">
+                    <div class="modal-content"><button class="modal-close" id="modal-close">×</button><h3>Hint</h3><p id="hint-text"></p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HELP BUTTON AND MODAL -->
+    <button id="helpFab">?</button>
+    <div id="helpModal">
+        <div id="helpModalContent">
+            <button id="closeHelpModalBtn">×</button>
+            <h3>Need Help or Have Feedback?</h3>
+            <p>Please describe your issue below. Clicking 'Send' will open your default email app to send the report.</p>
+            <textarea id="helpTextarea" placeholder="Tell us what's wrong or what you'd like to see..."></textarea>
+            <button id="sendHelpBtn">Send Feedback</button>
+        </div>
+    </div>
+
+
+    <script>
+    (function() {
+        'use strict';
+        
+        // --- GLOBAL APP CONTROLLER ---
+        let isQuizInitialized = false;
+
+        const App = {
+            init: function() {
+                this.cacheDOMElements();
+                this.bindEvents();
+            },
+            cacheDOMElements: function() {
+                this.welcomeScreen = document.getElementById('welcomeScreen');
+                this.welcomeBtns = document.querySelectorAll('.welcome-btn');
+                this.mainAppContainer = document.getElementById('mainAppContainer');
+                this.appTitle = document.getElementById('appTitle');
+                this.appSubtitle = document.getElementById('appSubtitle');
+                this.tabs = document.querySelectorAll('.subject-tab');
+                this.solverView = document.getElementById('solverView');
+                this.quizView = document.getElementById('quizView');
+                this.helpFab = document.getElementById('helpFab');
+                this.helpModal = document.getElementById('helpModal');
+                this.closeHelpModalBtn = document.getElementById('closeHelpModalBtn');
+                this.sendHelpBtn = document.getElementById('sendHelpBtn');
+                this.helpTextarea = document.getElementById('helpTextarea');
+            },
+            bindEvents: function() {
+                this.welcomeBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => this.launchApp(e.currentTarget.dataset.choice));
+                });
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', (e) => this.handleTabClick(e));
+                });
+                this.helpFab.addEventListener('click', () => this.showHelpModal());
+                this.closeHelpModalBtn.addEventListener('click', () => this.hideHelpModal());
+                this.sendHelpBtn.addEventListener('click', () => this.sendFeedback());
+            },
+            launchApp: function(choice) {
+                this.welcomeScreen.classList.add('hidden');
+                this.mainAppContainer.style.display = 'block';
+
+                if (choice === 'solver') {
+                    this.switchToView('solver', document.querySelector('.subject-tab[data-view="solver"]'));
+                } else if (choice === 'quiz') {
+                    this.switchToView('quiz', document.querySelector('.subject-tab[data-view="quiz"]'));
+                }
+            },
+            handleTabClick: function(e) {
+                const clickedTab = e.currentTarget;
+                const view = clickedTab.dataset.view;
+                this.switchToView(view, clickedTab);
+            },
+            switchToView: function(view, activeTab) {
+                this.tabs.forEach(t => t.classList.remove('active'));
+                activeTab.classList.add('active');
+
+                if (view === 'home') {
+                    this.welcomeScreen.classList.remove('hidden');
+                    this.mainAppContainer.style.display = 'none';
+                } else if (view === 'quiz') {
+                    this.appTitle.textContent = 'QuizGenius AI Game';
+                    this.appSubtitle.textContent = 'Challenge yourself and level up!';
+                    this.solverView.style.display = 'none';
+                    this.quizView.style.display = 'block';
+                    if (!isQuizInitialized) {
+                        QuizApp.init();
+                        isQuizInitialized = true;
+                    }
+                    QuizApp.showWelcome();
+                } else { // Solver view
+                    this.appTitle.textContent = 'Question Solver AI';
+                    this.appSubtitle.textContent = 'Solve problems with text or images';
+                    this.solverView.style.display = 'block';
+                    this.quizView.style.display = 'none';
+                    SolverApp.setActiveSubject(activeTab.dataset.subject);
+                }
+            },
+            showHelpModal: function() { this.helpModal.style.display = 'flex'; },
+            hideHelpModal: function() { this.helpModal.style.display = 'none'; },
+            sendFeedback: function() {
+                const recipientEmail = "Guptaranjeet9682@gmail.com";
+                const subject = "Feedback/Issue for AI Hub App";
+                const body = this.helpTextarea.value;
+                if (body.trim() === '') { alert('Please describe your problem before sending.'); return; }
+                const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoLink;
+                this.hideHelpModal(); this.helpTextarea.value = '';
+            },
+        };
+
+        // --- QUESTION SOLVER APP ---
+        const SolverApp = {
+            API_KEY: 'AIzaSyCd327VXNMH3hepIXKr-CfEo2JJTvwGm18',
+            selectedSubject: 'general', currentMode: 'text', isProcessing: false, uploadedImage: null,
+            init: function() { this.cacheDOMElements(); this.bindEvents(); },
+            cacheDOMElements: function() { this.modeBtns = document.querySelectorAll('.mode-btn'); this.imageUploadArea = document.getElementById('imageMode'); this.imageInput = document.getElementById('imageInput'); this.questionInputEl = document.getElementById('questionInput'); this.solveBtn = document.getElementById('solveBtn'); this.textModeEl = document.getElementById('textMode'); this.imageModeEl = document.getElementById('imageMode'); this.imagePreviewEl = document.getElementById('imagePreview'); this.errorAlertEl = document.getElementById('errorAlert'); this.loadingEl = document.getElementById('loading'); this.resultCardEl = document.getElementById('resultCard'); this.resultContentEl = document.getElementById('resultContent'); },
+            bindEvents: function() { this.modeBtns.forEach(btn => btn.addEventListener('click', (e) => this.handleModeSwitch(e))); this.imageUploadArea.addEventListener('click', () => this.imageInput.click()); this.imageInput.addEventListener('change', (e) => this.handleImageUpload(e)); this.imageUploadArea.addEventListener('dragover', (e) => this.handleDragOver(e)); this.imageUploadArea.addEventListener('drop', (e) => this.handleDrop(e)); this.imageUploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e)); this.solveBtn.addEventListener('click', () => this.solveQuestion()); },
+            setActiveSubject: function(subject) { this.selectedSubject = subject; },
+            handleModeSwitch: function(e) { const btn = e.currentTarget; this.modeBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); this.currentMode = btn.dataset.mode; this.switchMode(this.currentMode); },
+            switchMode: function(mode) { if (mode === 'text') { this.textModeEl.style.display = 'block'; this.imageModeEl.style.display = 'none'; this.clearImage(); } else { this.textModeEl.style.display = 'none'; this.imageModeEl.style.display = 'block'; } },
+            handleDragOver: function(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); },
+            handleDragLeave: function(e) { e.currentTarget.classList.remove('dragover'); },
+            handleDrop: function(e) { e.preventDefault(); e.currentTarget.classList.remove('dragover'); const files = e.dataTransfer.files; if (files.length > 0) this.processImageFile(files[0]); },
+            handleImageUpload: function(e) { const file = e.target.files[0]; if (file) this.processImageFile(file); },
+            processImageFile: function(file) { if (!file.type.startsWith('image/')) { this.showError('Please select a valid image file.'); return; } const reader = new FileReader(); reader.onload = (e) => { this.uploadedImage = { data: e.target.result.split(',')[1], mimeType: file.type }; this.showImagePreview(e.target.result); }; reader.readAsDataURL(file); },
+            showImagePreview: function(src) { this.imagePreviewEl.innerHTML = `<div class="image-container"><img src="${src}" class="uploaded-image" alt="Uploaded question"><button class="remove-image-btn" onclick="SolverApp.clearImage()">×</button></div>`; },
+            clearImage: function() { this.uploadedImage = null; this.imagePreviewEl.innerHTML = ''; this.imageInput.value = ''; },
+            showError: function(message) { this.errorAlertEl.textContent = message; this.errorAlertEl.style.display = 'block'; setTimeout(() => { this.errorAlertEl.style.display = 'none'; }, 5000); },
+            formatResponse: function(text) { let html = text.replace(/</g, "<").replace(/>/g, ">"); html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/`(.*?)`/g, '<code>$1</code>'); html = html.replace(/```(\w*?)\n([\s\S]+?)```/g, (match, lang, code) => `<pre><code class="language-${lang}">${code}</code></pre>`); html = html.replace(/^(?:\s*[\*\-]\s.+\n?)+/gm, match => `<ul>${match.trim().split('\n').map(line => `<li>${line.replace(/^\s*[\*\-]\s*/, '')}</li>`).join('')}</ul>`); return html.split('\n').map(line => line.trim() ? (line.match(/^<\/?(ul|li|pre|code|strong|em)/) ? line : `<p>${line}</p>`) : '').join(''); },
+            solveQuestion: async function() { if (this.isProcessing) return; const questionText = this.questionInputEl.value.trim(); if (this.currentMode === 'text' && !questionText) { this.showError('Please enter a question!'); return; } if (this.currentMode === 'image' && !this.uploadedImage) { this.showError('Please upload an image!'); return; } this.isProcessing = true; this.solveBtn.disabled = true; this.loadingEl.style.display = 'block'; this.resultCardEl.style.display = 'none'; this.errorAlertEl.style.display = 'none'; try { const prompt = this.createPrompt(questionText, this.selectedSubject); const response = await this.callGeminiAPI(prompt, this.uploadedImage); this.resultContentEl.innerHTML = this.formatResponse(response); this.resultCardEl.style.display = 'block'; this.resultCardEl.scrollIntoView({ behavior: 'smooth' }); } catch (error) { console.error('Error:', error); this.showError('An error occurred: ' + error.message); } finally { this.isProcessing = false; this.solveBtn.disabled = false; this.loadingEl.style.display = 'none'; } },
+            createPrompt: function(question, subject) { const basePrompt = { general: "Answer the following question clearly:", math: "Solve this math problem step-by-step:", physics: "Explain this physics concept:", chemistry: "Explain this chemistry concept:", biology: "Explain this biology concept:", hindi: "Answer this question in Hindi:", english: "Help with this English question:" }[subject] || "Answer the question:"; let fullPrompt = basePrompt + (this.currentMode === 'image' ? "\n\nAnalyze the attached image. If it contains a question, solve it." + (question ? "\n\nAdditional context: " + question : "") : "\n\nQuestion: " + question); return fullPrompt; },
+            callGeminiAPI: async function(prompt, imageData = null) { const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${this.API_KEY}`; const requestBody = { contents: [{ parts: imageData ? [{ text: prompt }, { inline_data: { mime_type: imageData.mimeType, data: imageData.data } }] : [{ text: prompt }] }] }; const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }); if (!response.ok) { const errorData = await response.json(); throw new Error(`API Error: ${response.status} - ${errorData.error?.message}`); } const data = await response.json(); return data.candidates[0].content.parts[0].text; }
+        };
+
+        // --- QUIZ GAME APP ---
+        const QuizApp = {
+            quizQuestions: {
+                levels: [
+                    { name: "Level 1", difficulty: "Easy", questions: [ { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris", "Rome"], answer: "Paris", hint: "It's known as the 'City of Love'." }, { question: "Which planet is known as the Red Planet?", options: ["Earth", "Mars", "Jupiter", "Saturn"], answer: "Mars", hint: "It's the fourth planet from the Sun." }, { question: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: "Pacific", hint: "It covers about one-third of the surface of the Earth." }, { question: "Who wrote 'Hamlet'?", options: ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Mark Twain"], answer: "William Shakespeare", hint: "An English playwright, poet, and actor." }, { question: "What is H2O commonly known as?", options: ["Salt", "Sugar", "Water", "Oxygen"], answer: "Water", hint: "Essential for all known forms of life." } ] },
+                    { name: "Level 2", difficulty: "Medium", questions: [ { question: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondrion", "Cell Wall"], answer: "Mitochondrion", hint: "It generates most of the cell's supply of ATP." }, { question: "Which country is home to the kangaroo?", options: ["South Africa", "India", "Australia", "Brazil"], answer: "Australia", hint: "A large island continent." }, { question: "What is the hardest natural substance on Earth?", options: ["Gold", "Iron", "Diamond", "Quartz"], answer: "Diamond", hint: "A form of carbon, often used in jewelry." }, { question: "Who painted the Mona Lisa?", options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Claude Monet"], answer: "Leonardo da Vinci", hint: "An Italian polymath of the High Renaissance." }, { question: "What is the currency of Japan?", options: ["Yuan", "Won", "Yen", "Baht"], answer: "Yen", hint: "Symbolized by ¥." } ] },
+                    ...Array.from({ length: 13 }, (_, i) => ({ name: `Level ${i + 3}`, difficulty: i < 5 ? "Hard" : "Expert", questions: [ { question: `This is a sample question for level ${i + 3}. What is the correct answer?`, options: [`Answer ${i+3}A`, `Answer ${i+3}B`, `Answer ${i+3}C`, `Answer ${i+3}D`], answer: `Answer ${i+3}A`, hint: `This is a hint for level ${i + 3}.` } ] }))
+                ]
+            },
+            currentLevel: 0, currentQuestionIndex: 0, score: 0, timer: null,
+            init: function() { this.cacheDOMElements(); this.bindEvents(); },
+            cacheDOMElements: function() {
+                this.quizWelcomeModal = document.getElementById('quiz-welcome-modal');
+                this.welcomeStatsContainer = document.getElementById('welcome-stats');
+                this.startQuizActualBtn = document.getElementById('startQuizActualBtn');
+                this.quizSection = document.getElementById('quiz');
+                this.levelDotsContainer = document.querySelector('.level-progress');
+                this.currentLevelElement = document.getElementById('current-level');
+                this.totalLevelsElement = document.getElementById('total-levels');
+                this.currentQuestionElement = document.getElementById('current-question');
+                this.totalQuestionsElement = document.getElementById('total-questions');
+                this.currentScoreElement = document.getElementById('current-score');
+                this.timerElement = document.getElementById('timer');
+                this.questionTextElement = document.getElementById('question-text');
+                this.optionsContainer = document.getElementById('options-container');
+                this.nextBtn = document.getElementById('next-btn');
+                this.restartBtn = document.getElementById('restart-btn');
+                this.resultsSection = document.getElementById('results');
+                this.finalScoreElement = document.getElementById('final-score');
+            },
+            bindEvents: function() {
+                this.nextBtn.addEventListener('click', () => this.nextQuestion());
+                this.restartBtn.addEventListener('click', () => this.restartQuiz());
+                this.startQuizActualBtn.addEventListener('click', () => this.startQuiz());
+            },
+            showWelcome: function() {
+                this.quizSection.style.display = 'none';
+                this.resultsSection.style.display = 'none';
+                this.quizWelcomeModal.style.display = 'flex';
+                const lastPlayed = localStorage.getItem('quizLastPlayed');
+                const lastPlayedDate = lastPlayed ? new Date(parseInt(lastPlayed)).toLocaleString() : "Never";
+                const levelData = this.quizQuestions.levels[0];
+                this.welcomeStatsContainer.innerHTML = `
+                    <div class="welcome-stat"><strong>Levels</strong><span>${this.quizQuestions.levels.length} Available</span></div>
+                    <div class="welcome-stat"><strong>Difficulty</strong><span>${levelData.difficulty} (Starts)</span></div>
+                    <div class="welcome-stat"><strong>Questions</strong><span>${levelData.questions.length} per level</span></div>
+                    <div class="welcome-stat"><strong>Points</strong><span>+10 per correct</span></div>
+                    <div class="welcome-stat" style="grid-column: 1 / -1;"><strong>Last Played</strong><span>${lastPlayedDate}</span></div>
+                `;
+            },
+            startQuiz: function() {
+                this.quizWelcomeModal.style.display = 'none';
+                this.quizSection.style.display = 'block';
+                this.resultsSection.style.display = 'none';
+                this.score = 0; this.currentLevel = 0; this.currentQuestionIndex = 0;
+                this.currentScoreElement.textContent = this.score;
+                this.totalLevelsElement.textContent = this.quizQuestions.levels.length;
+                this.startLevel(0);
+            },
+            startLevel: function(levelIndex) { this.currentLevel = levelIndex; this.currentQuestionIndex = 0; this.updateLevelDots(); this.loadQuestion(); },
+            updateLevelDots: function() { const dots = this.levelDotsContainer.querySelectorAll('.level-dot'); dots.forEach((dot, index) => { dot.classList.remove('active'); if (index < this.currentLevel) { dot.style.backgroundColor = '#6b48ff'; } else if (index === this.currentLevel) { dot.classList.add('active'); dot.style.backgroundColor = ''; } else { dot.style.backgroundColor = ''; } }); },
+            loadQuestion: function() {
+                const levelData = this.quizQuestions.levels[this.currentLevel];
+                if (this.currentQuestionIndex >= levelData.questions.length) {
+                    if (this.currentLevel < this.quizQuestions.levels.length - 1) { this.startLevel(this.currentLevel + 1); } else { this.showResults(); }
+                    return;
+                }
+                this.currentLevelElement.textContent = this.currentLevel + 1;
+                this.currentQuestionElement.textContent = this.currentQuestionIndex + 1;
+                this.totalQuestionsElement.textContent = levelData.questions.length;
+
+                const q = levelData.questions[this.currentQuestionIndex];
+                this.questionTextElement.textContent = q.question;
+                this.optionsContainer.innerHTML = '';
+                q.options.forEach(option => {
+                    const optEl = document.createElement('div');
+                    optEl.className = 'option';
+                    optEl.textContent = option;
+                    optEl.addEventListener('click', () => this.selectOption(optEl, q.answer));
+                    this.optionsContainer.appendChild(optEl);
+                });
+                this.nextBtn.style.display = 'none';
+            },
+            selectOption: function(selectedEl, correctAnswer) {
+                document.querySelectorAll('.option').forEach(el => el.classList.add('disabled'));
+                if (selectedEl.textContent === correctAnswer) { selectedEl.classList.add('correct'); this.score += 10; this.currentScoreElement.textContent = this.score; } else { selectedEl.classList.add('incorrect'); }
+                this.nextBtn.style.display = 'block';
+            },
+            nextQuestion: function() { this.currentQuestionIndex++; this.loadQuestion(); },
+            showResults: function() { 
+                localStorage.setItem('quizLastPlayed', Date.now().toString());
+                this.quizSection.style.display = 'none';
+                this.resultsSection.style.display = 'block'; 
+                this.finalScoreElement.textContent = `Your Final Score: ${this.score}`;
+            },
+            restartQuiz: function() { this.showWelcome(); }
+        };
+
+        // Initialize the main application controller
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+            SolverApp.init(); // Solver is always initialized
+        });
+    })();
+    </script>
+</body>
+  </html>
