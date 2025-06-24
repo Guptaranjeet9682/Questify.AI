@@ -3,468 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Hub: Solver & Quiz</title>
+    <title>QuizGenius AI: Solver & Quiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         /* --- GLOBAL & CORE STYLES --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f7;
-            min-height: 100vh;
-            color: #1d1d1f;
-            transition: background-color 0.5s ease, color 0.5s ease;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* --- WELCOME SCREEN STYLES --- */
-        #welcomeScreen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: linear-gradient(135deg, #007AFF, #5856D6);
-            z-index: 2000;
-            text-align: center;
-            padding: 20px;
-            color: white;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-            overflow-y: auto;
-        }
-
-        #welcomeScreen.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        #welcomeScreen h1 {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        #welcomeScreen .welcome-text-container {
-            max-width: 550px;
-            margin: 15px auto 30px;
-            text-align: left;
-            line-height: 1.7;
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 15px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f5f5f7; min-height: 100vh; color: #1d1d1f; position: relative; overflow-x: hidden; }
         
-        #welcomeScreen p {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-
-        #welcomeScreen ul {
-            list-style-position: inside;
-            padding-left: 5px;
-            margin-bottom: 15px;
-        }
-
-        .welcome-options {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .welcome-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            color: white;
-            padding: 20px 40px;
-            border-radius: 15px;
-            font-size: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 250px;
-        }
-
-        .welcome-btn:hover {
-            background: white;
-            color: #007AFF;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        /* --- MAIN APP CONTAINER (Initially Hidden) --- */
-        #mainAppContainer {
-            display: none;
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            min-height: 100vh;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.5s ease;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #007AFF, #5856D6);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .header h1 { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
-        .header p { font-size: 16px; opacity: 0.9; }
-
-        .main-content { padding: 20px; }
-        .view-container { width: 100%; }
-
-        .subject-tabs { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; padding-bottom: 5px; }
-        .subject-tab { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; background: #f2f2f7; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
-        .subject-tab.active { background: #007AFF; color: white; }
-        .subject-tab .home-icon { font-size: 16px; margin-right: 5px; }
-
-        /* --- HELP BUTTON AND MODAL STYLES --- */
-        #helpFab {
+        /* --- FLOATING HELP BUTTON --- */
+        #floatingHelpBtn {
             position: fixed;
-            bottom: 25px;
-            right: 25px;
-            width: 60px;
-            height: 60px;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #007AFF, #5856D6);
             color: white;
             border-radius: 50%;
             border: none;
-            font-size: 30px;
-            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             cursor: pointer;
-            z-index: 1001;
-            transition: all 0.3s ease;
+            z-index: 1000;
+            transition: transform 0.2s ease;
         }
-        #helpFab:hover { transform: scale(1.1) rotate(15deg); }
-
-        #helpModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            z-index: 1002;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        #floatingHelpBtn:hover {
+            transform: scale(1.1);
         }
 
-        #helpModalContent {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-        #helpModalContent h3 { margin-bottom: 15px; color: #1d1d1f; }
-        #helpModalContent p { font-size: 14px; color: #8e8e93; margin-bottom: 20px; }
+        /* --- OVERLAYS & MODALS --- */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 2500; justify-content: center; align-items: center; padding: 20px; transition: opacity 0.3s ease; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; max-width: 400px; width: 100%; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); text-align: center; transform: scale(0.95); transition: transform 0.3s ease; position: relative; }
+        .overlay.visible { display: flex; opacity: 1; }
+        .overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h3 { margin-bottom: 15px; color: #1d1d1f; }
+        .modal-content p { font-size: 14px; color: #8e8e93; margin-bottom: 25px; line-height: 1.5; }
+        .modal-content h4 { margin-top: 15px; margin-bottom: 8px; color: #007AFF; }
+        .modal-content ul { list-style-position: inside; padding-left: 0; margin-bottom: 15px; }
+        .modal-content li { margin-bottom: 5px; }
+        .modal-close-btn { position: absolute; top: 15px; right: 15px; font-size: 20px; color: #aaa; background: none; border: none; cursor: pointer; }
+        #moreHelpLink { display: block; margin-top: 15px; color: #555; font-size: 14px; cursor: pointer; }
+        #feedbackTextarea { width: 100%; min-height: 120px; padding: 10px; border-radius: 8px; border: 1px solid #d1d1d6; font-size: 16px; resize: vertical; margin-bottom: 15px; }
+        .modal-btn-group { display: flex; gap: 15px; justify-content: center; }
+        .modal-btn { flex: 1; padding: 12px 20px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .confirm-btn { background-color: #007AFF; color: white; }
+        .cancel-btn { background-color: #e0e0e0; color: #333; }
+        .danger-btn { background-color: #e74c3c; color: white; }
+
+        /* --- SCREENS --- */
+        .fullscreen { display: none; flex-direction: column; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; text-align: center; padding: 20px; color: white; }
+        #namePromptScreen { background: linear-gradient(135deg, #6b48ff, #3498db); z-index: 3000; }
+        #welcomeScreen { background: linear-gradient(135deg, #007AFF, #5856D6); z-index: 2000; overflow-y: auto; }
+        #thankYouOverlay { background-color: rgba(0, 122, 255, 0.9); z-index: 4000; font-size: 24px; font-weight: 600; opacity: 0; }
+        #thankYouOverlay.visible { display: flex; opacity: 1; }
+
+        /* --- NAME PROMPT & PROFILE PIC --- */
+        #profilePreviewContainer { position: relative; width: 100px; height: 100px; margin-bottom: 20px; cursor: pointer; }
+        #profileImagePreview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid white; background-color: rgba(255,255,255,0.2); }
+        #profilePreviewContainer::after { content: '+'; position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; background: white; color: #6b48ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+        #nameInput { font-size: 20px; padding: 15px 20px; border-radius: 12px; border: 2px solid white; background: rgba(255,255,255,0.2); color: white; text-align: center; width: 100%; max-width: 350px; margin-bottom: 20px; outline: none; }
+        #continueBtn { background: white; color: #6b48ff; padding: 15px 40px; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; border: none; }
+        #creatorCredit { font-weight: 600; color: white; margin-top: 25px; font-size: 14px; opacity: 0.9; } /* Style for the new element */
+        .welcome-options { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 30px; }
+        .welcome-btn { background: rgba(255, 255, 255, 0.2); border: 2px solid white; color: white; padding: 20px 40px; border-radius: 15px; font-size: 20px; font-weight: 600; cursor: pointer; min-width: 250px; }
         
-        #helpTextarea {
-            width: 100%; min-height: 120px; padding: 15px; border: 1px solid #d1d1d6; border-radius: 12px;
-            font-size: 16px; resize: vertical; background: white; font-family: inherit; margin-bottom: 20px;
-        }
-        #helpTextarea:focus { outline: none; border-color: #007AFF; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); }
+        /* --- MAIN APP --- */
+        #mainAppContainer { display: none; max-width: 800px; margin: 0 auto; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #007AFF, #5856D6); color: white; padding: 15px 20px; text-align: center; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; }
+        .header-text { text-align: left; }
+        .header h1 { font-size: 22px; font-weight: 600; margin-bottom: 2px; }
+        .header p { font-size: 14px; opacity: 0.9; line-height: 1.4; margin-bottom: 0; }
+        .header-right-controls { display: flex; align-items: center; gap: 15px; }
+        #headerProfilePic { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; display: none; }
+        .header-controls { margin-top: 0; display: flex; flex-direction: column; gap: 8px; }
+        .header-switch-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid white; color: white; padding: 6px 14px; border-radius: 25px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        #resetUserBtn { background: rgba(231, 76, 60, 0.7); }
+        .main-content { padding: 20px; }
+        .subject-tabs { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; padding-bottom: 5px; }
+        .subject-tab { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; background: #f2f2f7; border: none; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .subject-tab.active { background: #007AFF; color: white; }
+        .subject-tab .home-icon { font-size: 16px; margin-right: 5px; }
 
-        #closeHelpModalBtn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #8e8e93; }
-        
-        #sendHelpBtn {
-            width: 100%; background: linear-gradient(135deg, #007AFF, #5856D6); color: white; border: none;
-            padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
-        }
-
-        /* --- SOLVER STYLES --- */
-        #solverView .input-section { background: #f2f2f7; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-        .input-modes { display: flex; gap: 10px; margin-bottom: 15px; }
-        .mode-btn { flex: 1; padding: 10px; border: 1px solid #d1d1d6; background: white; border-radius: 10px; font-size: 14px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .mode-btn.active { background: #007AFF; color: white; border-color: #007AFF; }
-        .question-input { width: 100%; min-height: 100px; padding: 15px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; resize: vertical; background: white; font-family: inherit; transition: all 0.3s ease; }
-        .question-input:focus { outline: none; border-color: #007AFF; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); }
-        .image-upload-area { display: none; border: 2px dashed #d1d1d6; border-radius: 12px; padding: 40px 20px; text-align: center; background: white; cursor: pointer; transition: all 0.2s ease; }
-        .image-upload-area:hover { border-color: #007AFF; background: #f8f9ff; }
-        .upload-icon { font-size: 48px; color: #8e8e93; margin-bottom: 10px; }
-        .upload-text { color: #8e8e93; font-size: 16px; margin-bottom: 10px; }
-        .file-input { display: none; }
-        .uploaded-image { max-width: 100%; max-height: 300px; border-radius: 12px; margin: 15px 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-        .solve-btn { width: 100%; background: linear-gradient(135deg, #007AFF, #5856D6); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; margin-bottom: 20px; }
-        .solve-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3); }
-        .solve-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        /* --- SOLVER, HISTORY, QUIZ STYLES (Unchanged) --- */
+        .solver-mode-switch { display: flex; gap: 10px; margin-bottom: 15px; }
+        .solver-mode-switch .mode-btn { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #007AFF; font-size: 16px; font-weight: 600; cursor: pointer; background-color: #fff; color: #007AFF; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .solver-mode-switch .mode-btn.active { background-color: #007AFF; color: #fff; }
+        .input-section { background: #f2f2f7; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .question-input { width: 100%; min-height: 100px; padding: 15px; border: 1px solid #d1d1d6; border-radius: 12px; font-size: 16px; resize: vertical; }
+        #imagePreviewContainer { display: none; margin-top: 15px; position: relative; max-width: 150px; }
+        #imagePreview { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+        #removeImageBtn { position: absolute; top: -10px; right: -10px; background: white; color: red; border: 1px solid red; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .solve-btn { width: 100%; background: linear-gradient(135deg, #007AFF, #5856D6); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
         .loading { display: none; text-align: center; padding: 30px; }
         .loading-spinner { width: 32px; height: 32px; border: 3px solid #f2f2f7; border-top: 3px solid #007AFF; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .result-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-bottom: 20px; display: none; transition: all 0.3s ease; }
-        .result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f2f2f7; }
-        .result-content { line-height: 1.6; color: #3a3a3c; }
-        .result-content h4 { color: #1d1d1f; margin: 15px 0 8px 0; font-weight: 600; }
-        .result-content p { margin-bottom: 12px; }
-        .result-content ul, .result-content ol { margin: 10px 0 10px 20px; padding-left: 15px; }
-        .result-content li { margin-bottom: 8px; }
-        .result-content code { background: #f2f2f7; padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Consolas, monospace; font-size: 14px; }
-        .result-content pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 8px; overflow-x: auto; margin: 15px 0; }
-        .result-content pre code { background: none; padding: 0; font-family: 'SF Mono', Consolas, monospace; font-size: 14px; }
-        .error-alert { background: #ffe6e6; color: #d32f2f; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; border-left: 4px solid #d32f2f; }
-        #solverView .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-top: 30px; }
-        #solverView .feature-card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); transition: all 0.2s ease; }
-        #solverView .feature-card:hover { transform: translateY(-2px); }
-        .feature-icon { font-size: 32px; margin-bottom: 10px; }
-        .feature-title { font-weight: 600; margin-bottom: 5px; color: #1d1d1f; }
-        .feature-desc { font-size: 14px; color: #8e8e93; }
-        .remove-image-btn { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.7); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; line-height: 1; }
-        .image-container { position: relative; display: inline-block; }
-
-        /* --- QUIZ STYLES (SCOPED) --- */
-        #quizView { font-family: 'Poppins', sans-serif; }
-        #quizView .quiz-container { background-color: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 2rem; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); margin-bottom: 2rem; transition: background-color 0.5s ease; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .result-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); display: none; margin-top: 20px; }
+        #historyView .history-item { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: box-shadow 0.2s; }
+        #historyView .history-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        #historyView .history-question { font-weight: 600; margin-bottom: 5px; color: #333; }
+        #historyView .history-date { font-size: 12px; color: #888; }
+        #historyView .history-answer { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; line-height: 1.6; color: #555; }
+        #historyView .history-answer.visible { display: block; }
+        #historyView .history-controls { margin-bottom: 20px; text-align: right; }
+        #quizView .quiz-container { background-color: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 2rem; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
         #quizView .quiz-info { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-weight: 600; }
-        #quizView .level-progress { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        #quizView .level-dot { width: 12px; height: 12px; border-radius: 50%; background-color: #e0e0e0; transition: background-color 0.3s ease; }
-        #quizView .level-dot.active { background-color: #6b48ff; transform: scale(1.2); }
-        #quizView .progress-container { width: 100%; height: 8px; background-color: #e0e0e0; border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
-        #quizView .progress-bar { height: 100%; width: 0%; background-color: #6b48ff; border-radius: 4px; transition: width 0.3s ease; }
         #quizView .timer { text-align: center; font-size: 1.2em; font-weight: 600; margin-bottom: 1.5rem; color: #6b48ff; }
-        #quizView .timer.warning { color: #e74c3c; }
+        #quizView .timer.warning { color: #e74c3c; transform: scale(1.1); }
         #quizView .question { font-size: 1.3em; margin-bottom: 1.5rem; font-weight: 600; line-height: 1.4; }
         #quizView .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-        #quizView .option { background-color: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.3s ease; font-weight: 400; text-align: center; }
-        #quizView .option:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); border-color: #6b48ff; }
+        #quizView .option { background-color: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 1rem; cursor: pointer; text-align: center; transition: transform 0.2s, background-color 0.2s; }
+        #quizView .option:hover { transform: translateY(-3px); }
         #quizView .option.correct { background-color: #2ecc71; color: white; border-color: #2ecc71; }
         #quizView .option.incorrect { background-color: #e74c3c; color: white; border-color: #e74c3c; }
         #quizView .option.disabled { pointer-events: none; opacity: 0.7; }
-        #quizView .hint-btn, #quizView .next-btn, #quizView .restart-btn, #quizView .start-btn { background-color: #6b48ff; color: white; border: none; padding: 0.8rem 2rem; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
-        #quizView .hint-btn:hover, #quizView .next-btn:hover, #quizView .restart-btn:hover, #quizView .start-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2); }
-        #quizView .hint-btn { padding: 0.5rem 1rem; margin-bottom: 1.5rem; }
-        #quizView .hint-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; transform: none; box-shadow: none; }
+        #quizView .next-btn, #quizView .restart-btn, #quizView .start-btn { background-color: #6b48ff; color: white; border: none; padding: 0.8rem 2rem; border-radius: 5px; cursor: pointer; font-weight: 600; }
         #quizView .next-btn { display: none; margin: 0 auto; }
-        #quizView .modal, #quizView .welcome-modal, #quizView .exit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 1100; justify-content: center; align-items: center; }
-        #quizView .modal-content, #quizView .welcome-content, #quizView .exit-content { background-color: white; padding: 2rem; border-radius: 15px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); position: relative; }
-        #quizView .modal-close { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #2c3e50; }
-        #quizView .welcome-content h2, #quizView .exit-content h2 { margin-bottom: 1.5rem; color: #6b48ff; }
-        #quizView .welcome-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; text-align: left; }
+        #quizView .welcome-content h2 { color: #6b48ff; }
         #quizView .welcome-stat { padding: 0.8rem; background-color: rgba(107, 72, 255, 0.1); border-radius: 8px; }
         #quizView .welcome-stat strong { display: block; margin-bottom: 0.3rem; color: #6b48ff; }
         #quizView .results { display: none; text-align: center; }
-        #quizView .results h2 { margin-bottom: 1rem; font-size: 1.5em; }
-        #quizView .score-display { font-size: 1.8em; font-weight: 700; margin-bottom: 1rem; color: #6b48ff; animation: scorePop 0.5s ease; }
-        @keyframes scorePop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        
-        /* --- DARK MODE STYLES --- */
-        body.dark-mode { background: #000000; color: #e0e0e0; }
-        .dark-mode #mainAppContainer { background: #1c1c1e; color: #f5f5f7; box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }
-        .dark-mode .header { background: linear-gradient(135deg, #2c3e50, #4b79a1); }
-        .dark-mode .subject-tab { background: #2c2c2e; color: #e0e0e0; }
-        .dark-mode .subject-tab.active { background: #00ddeb; color: #1d1d1f; }
-        .dark-mode #solverView .input-section { background: #2c2c2e; }
-        .dark-mode .mode-btn { background: #3a3a3c; border-color: #555; color: #f5f5f7; }
-        .dark-mode .mode-btn.active { background: #00ddeb; color: #1d1d1f; border-color: #00ddeb; }
-        .dark-mode .question-input { background: #3a3a3c; color: white; border-color: #555; }
-        .dark-mode .question-input::placeholder { color: #8e8e93; }
-        .dark-mode .question-input:focus { border-color: #00ddeb; box-shadow: 0 0 0 3px rgba(0, 221, 235, 0.1); }
-        .dark-mode .image-upload-area { background: #3a3a3c; border-color: #555; }
-        .dark-mode .upload-text, .dark-mode .upload-icon { color: #aaa; }
-        .dark-mode .solve-btn { background: linear-gradient(135deg, #00ddeb, #6b48ff); }
-        .dark-mode .result-card { background: #2c2c2e; border-bottom-color: #444; }
-        .dark-mode .result-header { border-bottom-color: #3a3a3c; }
-        .dark-mode .result-content { color: #d1d1d6; }
-        .dark-mode .result-content h4 { color: #f5f5f7; }
-        .dark-mode .result-content code { background: #3a3a3c; }
-        .dark-mode .error-alert { background: #5c1f1f; color: #ffcccc; border-left-color: #e74c3c; }
-        .dark-mode #solverView .feature-card { background: #2c2c2e; }
-        .dark-mode .feature-title { color: #f5f5f7; }
-        .dark-mode .feature-desc { color: #aaa; }
-        /* Dark mode for help */
-        .dark-mode #helpFab { background: linear-gradient(135deg, #00ddeb, #6b48ff); }
-        .dark-mode #helpModalContent { background: #333; color: #e0e0e0; }
-        .dark-mode #helpModalContent h3 { color: #f5f5f7; }
-        .dark-mode #helpModalContent p { color: #aaa; }
-        .dark-mode #helpTextarea { background: #444; color: white; border-color: #666; }
-        .dark-mode #helpTextarea:focus { border-color: #00ddeb; }
-        .dark-mode #sendHelpBtn { background: linear-gradient(135deg, #00ddeb, #6b48ff); }
-        .dark-mode #closeHelpModalBtn { color: #aaa; }
-        /* Dark mode for quiz */
-        .dark-mode #quizView .quiz-container { background-color: rgba(30, 30, 30, 0.95); }
-        .dark-mode #quizView .level-dot { background-color: #34495e; }
-        .dark-mode #quizView .level-dot.active { background-color: #00ddeb; }
-        .dark-mode #quizView .progress-container { background-color: #34495e; }
-        .dark-mode #quizView .progress-bar { background-color: #00ddeb; }
-        .dark-mode #quizView .timer { color: #00ddeb; }
-        .dark-mode #quizView .option { background-color: #333; border-color: #444; color: #e0e0e0; }
-        .dark-mode #quizView .option:hover { border-color: #00ddeb; }
-        .dark-mode #quizView .hint-btn, .dark-mode #quizView .next-btn, .dark-mode #quizView .restart-btn, .dark-mode #quizView .start-btn { background-color: #00ddeb; }
-        .dark-mode #quizView .hint-btn:disabled { background-color: #555; }
-        .dark-mode #quizView .modal-content, .dark-mode #quizView .welcome-content, .dark-mode #quizView .exit-content { background-color: #333; color: #e0e0e0; }
-        .dark-mode #quizView .modal-close { color: #e0e0e0; }
-        .dark-mode #quizView .welcome-content h2, .dark-mode #quizView .exit-content h2 { color: #00ddeb; }
-        .dark-mode #quizView .welcome-stat { background-color: rgba(0, 221, 235, 0.1); }
-        .dark-mode #quizView .welcome-stat strong { color: #00ddeb; }
-        .dark-mode #quizView .score-display { color: #00ddeb; }
-
-
-        @media (max-width: 768px) {
-            #mainAppContainer { margin: 0; border-radius: 0; box-shadow: none; }
-            .main-content { padding: 15px; }
-            #quizView .options-grid { grid-template-columns: 1fr; }
-            #welcomeScreen h1 { font-size: 36px; }
-        }
+        #quizView .score-display { font-size: 1.8em; font-weight: 700; color: #6b48ff; }
+        @media (max-width: 768px) { #quizView .options-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
+    <div id="namePromptScreen" class="fullscreen">
+        <h1>Welcome to QuizGenius AI!</h1>
+        <p>Let's set up your profile.</p>
+        <div id="profilePreviewContainer" title="Click to upload a profile picture">
+            <img id="profileImagePreview" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjAgMjF2LTItNGE0IDQgMCAwIDAtNC00SCA4YTQgNCAwIDAgMC00IDR2MiIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iNyIgcj0iNCIvPjwvc3ZnPg==" alt="Profile Preview"/>
+        </div>
+        <input type="file" id="profileUpload" accept="image/*" style="display: none;">
+        <input type="text" id="nameInput" placeholder="Enter your full name">
+        <button id="continueBtn">Continue</button>
+        <p id="creatorCredit">This app built by Anish Gupta</p>
+    </div>
 
-    <!-- WELCOME SCREEN -->
-    <div id="welcomeScreen">
+    <div id="welcomeScreen" class="fullscreen">
         <h1>🚀 QuizGenius AI</h1>
         <p style="font-size: 1.1em; font-weight: 600; margin-bottom: 20px;">Your All-in-One Learning Adventure!</p>
-    
-        <div class="welcome-text-container">
-            <p>💡 <strong>Instant AI Solver:</strong> Stuck on a problem? Get step-by-step answers in seconds!</p>  
-            <p>🎯 <strong>Engaging Quiz Game:</strong> Challenge yourself with fun trivia & level up your knowledge.</p>
-            
-            <h3 style="margin-top: 20px; margin-bottom: 10px;">🔥 Why Choose QuizGenius AI?</h3>
-            <ul>
-                <li>✔ 100% Smart & Accurate</li>
-                <li>✔ Perfect for Students & Quiz Lovers</li>
-                <li>✔ Learn While Having Fun!</li>
-            </ul>
-            <p>📲 <strong>Ready to Begin?</strong> Tap <strong>"Start Solving"</strong> or <strong>"Play Quiz"</strong> now and unleash your genius!</p>  
-            <p style="margin-top: 15px; opacity: 0.8; font-size: 0.9em;">👉 <em>Pro Tip: Try our Daily Quiz Challenge for a brain boost!</em> 😉</p>
-        </div>
-    
         <div class="welcome-options">
             <button class="welcome-btn" data-choice="solver">Start Solving</button>
             <button class="welcome-btn" data-choice="quiz">Play Quiz</button>
         </div>
     </div>
+    
+    <div id="thankYouOverlay" class="fullscreen">
+        Thank you for using QuizGenius AI! 👋
+    </div>
 
-    <!-- MAIN APP CONTAINER -->
     <div id="mainAppContainer">
         <div class="header">
-            <h1 id="appTitle">Question Solver AI</h1>
-            <p id="appSubtitle">Solve problems with text or images</p>
+            <div class="header-text">
+                <h1 id="appTitle">Question Solver AI</h1>
+                <p id="appSubtitle"></p>
+            </div>
+            <div class="header-right-controls">
+                <div class="header-controls">
+                    <button id="headerSwitchBtn" class="header-switch-btn">Play ❤️ Quiz</button>
+                    <button id="resetUserBtn" class="header-switch-btn" title="Clear all data and change user">Change User</button>
+                </div>
+                <img id="headerProfilePic" alt="Your profile picture">
+            </div>
         </div>
-
         <div class="main-content">
             <div class="subject-tabs">
-                <button class="subject-tab" data-view="home"><span class="home-icon">🏠</span> Home</button>
+                <button class="subject-tab" data-view="home" aria-label="Go to Home Screen"><span class="home-icon" aria-hidden="true">🏠</span> Home</button>
                 <button class="subject-tab active" data-view="solver" data-subject="general">General</button>
-                <button class="subject-tab" data-view="solver" data-subject="hindi">Hindi</button>
-                <button class="subject-tab" data-view="solver" data-subject="english">English</button>
                 <button class="subject-tab" data-view="solver" data-subject="math">Math</button>
-                <button class="subject-tab" data-view="solver" data-subject="physics">Physics</button>
-                <button class="subject-tab" data-view="solver" data-subject="chemistry">Chemistry</button>
-                <button class="subject-tab" data-view="solver" data-subject="biology">Biology</button>
-                <button class="subject-tab" data-view="quiz">🎮 Quiz Game</button>
+                <button class="subject-tab" data-view="solver" data-subject="science">Science</button>
+                <button class="subject-tab" data-view="history" aria-label="View Solver History"><span aria-hidden="true">📜</span> History</button>
             </div>
 
-            <!-- SOLVER VIEW -->
             <div id="solverView" class="view-container">
+                <div class="solver-mode-switch">
+                    <button id="textModeBtn" class="mode-btn active">✍️ Text Question</button>
+                    <button id="imageModeBtn" class="mode-btn">📷 Upload Image</button>
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                </div>
                  <div class="input-section">
-                    <div class="input-modes">
-                        <button class="mode-btn active" data-mode="text">✍️ Text Question</button>
-                        <button class="mode-btn" data-mode="image">📷 Upload Image</button>
+                    <textarea id="questionInput" class="question-input" placeholder="Type your question here..."></textarea>
+                    <div id="imagePreviewContainer">
+                        <img id="imagePreview" src="#" alt="Image Preview"/>
+                        <button id="removeImageBtn" aria-label="Remove uploaded image">❌</button>
                     </div>
-                    <div id="textMode">
-                        <textarea id="questionInput" class="question-input" placeholder="Type your question here..."></textarea>
-                    </div>
-                    <div id="imageMode" class="image-upload-area">
-                        <div class="upload-icon">📤</div>
-                        <div class="upload-text"><strong>Upload an image</strong><br>Drag & drop or click</div>
-                        <input type="file" id="imageInput" class="file-input" accept="image/*">
-                    </div>
-                    <div id="imagePreview"></div>
-                </div>
+                 </div>
                 <button class="solve-btn" id="solveBtn">Solve Question</button>
-                <div class="error-alert" id="errorAlert"></div>
-                <div class="loading" id="loading">
-                    <div class="loading-spinner"></div><p>AI is analyzing...</p>
-                </div>
-                <div class="result-card" id="resultCard">
-                    <div class="result-header"><span style="font-size: 20px;">✅</span><h3>Solution</h3></div>
-                    <div class="result-content" id="resultContent"></div>
-                </div>
-                <div class="features-grid">
-                    <div class="feature-card"><div class="feature-icon">🌐</div><div class="feature-title">Multi-Language</div><div class="feature-desc">Hindi & English</div></div>
-                    <div class="feature-card"><div class="feature-icon">📚</div><div class="feature-title">All Subjects</div><div class="feature-desc">Math, Science, etc.</div></div>
-                    <div class="feature-card"><div class="feature-icon">🖼️</div><div class="feature-title">Image Support</div><div class="feature-desc">Upload questions</div></div>
-                    <div class="feature-card"><div class="feature-icon">🤖</div><div class="feature-title">Instant AI</div><div class="feature-desc">Powered by Gemini</div></div>
-                </div>
+                <p style="text-align: center; padding: 10px 0 0 0;">
+                    <a href="#" id="viewHistoryLink" style="font-weight: bold; color: #007AFF; text-decoration: none; font-size: 14px;">View History</a>
+                </p>
+                <div class="loading" id="loading"> <div class="loading-spinner"></div><p>AI is analyzing...</p> </div>
+                <div class="result-card" id="resultCard"> <div id="resultContent"></div> </div>
             </div>
 
-            <!-- QUIZ VIEW -->
+            <div id="historyView" class="view-container" style="display: none;">
+                <div class="history-controls">
+                    <button id="clearHistoryBtn" class="modal-btn danger-btn" style="padding: 8px 15px; flex: none;">Clear All History</button>
+                </div>
+                <div id="historyList"></div>
+                <p id="noHistoryMessage" style="text-align:center; color: #888;">Your solved questions will appear here.</p>
+            </div>
             <div id="quizView" class="view-container" style="display: none;">
-                <div class="welcome-modal" id="quiz-welcome-modal">
-                    <div class="welcome-content">
+                 <div id="quiz-welcome-modal" class="overlay">
+                    <div class="modal-content welcome-content">
                         <h2>Ready for the Challenge?</h2>
-                        <div class="welcome-stats" id="welcome-stats"></div>
-                        <p style="font-size: 14px; color: #8e8e93; margin-top: 1rem; margin-bottom: 1.5rem;">Click "Start Quiz" to begin the challenge!</p>
-                        <button class="start-btn" id="startQuizActualBtn">Start Quiz</button>
+                        <div id="welcome-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; text-align: left;"></div>
+                        <p>We've saved your progress. Click below to continue your journey!</p>
+                        <button id="startQuizActualBtn" class="modal-btn confirm-btn">Continue Quiz</button>
                     </div>
                 </div>
-
                 <section id="quiz" class="quiz-container" style="display:none;">
                     <h2>General Knowledge Quiz</h2>
                     <div class="quiz-info">
                         <div class="level">Level: <span id="current-level">1</span>/<span id="total-levels">15</span></div>
-                        <div class="question-number">Question: <span id="current-question">1</span>/<span id="total-questions">5</span></div>
+                        <div class="question-number">Question: <span id="current-question">1</span>/<span id="total-questions">10</span></div>
                         <div class="score">Score: <span id="current-score">0</span></div>
                     </div>
-                    <div class="level-progress">
-                        <div class="level-dot" data-level="1"></div><div class="level-dot" data-level="2"></div><div class="level-dot" data-level="3"></div><div class="level-dot" data-level="4"></div><div class="level-dot" data-level="5"></div><div class="level-dot" data-level="6"></div><div class="level-dot" data-level="7"></div><div class="level-dot" data-level="8"></div><div class="level-dot" data-level="9"></div><div class="level-dot" data-level="10"></div><div class="level-dot" data-level="11"></div><div class="level-dot" data-level="12"></div><div class="level-dot" data-level="13"></div><div class="level-dot" data-level="14"></div><div class="level-dot" data-level="15"></div>
-                    </div>
-                    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
                     <div class="timer" id="timer">30</div>
                     <div class="question" id="question-text"></div>
                     <div class="options-grid" id="options-container"></div>
-                    <button class="hint-btn" id="hint-btn">Get Hint (-5 points)</button>
                     <button class="next-btn" id="next-btn">Next</button>
                     <div class="results" id="results">
                         <h2>Quiz Completed!</h2><div class="score-display" id="final-score"></div>
-                        <button class="restart-btn" id="restart-btn">Play Again</button>
+                        <button class="restart-btn modal-btn confirm-btn" id="restart-btn">Play Again</button>
                     </div>
                 </section>
-
-                <div class="modal" id="hint-modal">
-                    <div class="modal-content"><button class="modal-close" id="modal-close">×</button><h3>Hint</h3><p id="hint-text"></p></div>
-                </div>
             </div>
         </div>
     </div>
-
-    <!-- HELP BUTTON AND MODAL -->
-    <button id="helpFab">?</button>
-    <div id="helpModal">
-        <div id="helpModalContent">
-            <button id="closeHelpModalBtn">×</button>
-            <h3>Need Help or Have Feedback?</h3>
-            <p>Please describe your issue below. Clicking 'Send' will open your default email app to send the report.</p>
-            <textarea id="helpTextarea" placeholder="Tell us what's wrong or what you'd like to see..."></textarea>
-            <button id="sendHelpBtn">Send Feedback</button>
+    
+    <button id="floatingHelpBtn" aria-label="Open Help Menu">?</button>
+    
+    <div id="confirmationModal" class="overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <div class="modal-btn-group">
+                <button id="modalCancelBtn" class="modal-btn cancel-btn">Cancel</button>
+                <button id="modalConfirmBtn" class="modal-btn"></button>
+            </div>
+        </div>
+    </div>
+    <div id="helpModal" class="overlay">
+        <div class="modal-content" style="text-align: left;">
+            <h3>How to Use QuizGenius AI</h3>
+            <h4>AI Solver</h4>
+            <ul>
+                <li><strong>Text Question:</strong> Select this mode, type your question, and click "Solve".</li>
+                <li><strong>Upload Image:</strong> Select this mode to choose an image. Add text if needed.</li>
+                <li><strong>History:</strong> Access your recent questions via the "History" tab.</li>
+            </ul>
+            <h4>Quiz Game</h4>
+            <ul>
+                <li>Click on "Play Quiz" to start. Your progress is saved automatically.</li>
+                <li>You have 30 seconds to answer each question.</li>
+            </ul>
+            <button id="closeHelpBtn" class="modal-btn confirm-btn" style="width: 100%;">Got it!</button>
+            <a id="moreHelpLink">More Help 😣</a>
+        </div>
+    </div>
+    <div id="feedbackModal" class="overlay">
+        <div class="modal-content" style="text-align: left;">
+            <button class="modal-close-btn" id="closeFeedbackModal">×</button>
+            <h3 style="text-align: center;">Need Help or Have Feedback?</h3>
+            <p style="text-align: center;">Please describe your issue below. Clicking 'Send' will open your default email app to send the report.</p>
+            <textarea id="feedbackTextarea" placeholder="Tell us what's wrong or what you'd like to see..."></textarea>
+            <button id="sendFeedbackBtn" class="modal-btn confirm-btn" style="width: 100%; background: linear-gradient(135deg, #007AFF, #5856D6);">Send Feedback</button>
         </div>
     </div>
 
@@ -472,222 +280,177 @@
     <script>
     (function() {
         'use strict';
-        
-        // --- GLOBAL APP CONTROLLER ---
         let isQuizInitialized = false;
+        const motivationalQuotes = [ "Every day is a new opportunity to learn. 🚀", "Believe you can and you're halfway there. ✨", "The secret to getting ahead is getting started. 🏁", "The expert in anything was once a beginner. 🌱", "Push yourself, because no one else is going to do it for you. 💪" ];
+        let userAvatarBase64 = null;
 
         const App = {
-            init: function() {
-                this.cacheDOMElements();
-                this.bindEvents();
-            },
-            cacheDOMElements: function() {
+            init() { this.cacheDOMElements(); this.bindEvents(); this.checkUser(); },
+            cacheDOMElements() {
+                this.namePromptScreen = document.getElementById('namePromptScreen');
+                this.nameInput = document.getElementById('nameInput');
+                this.continueBtn = document.getElementById('continueBtn');
+                this.profileUploadInput = document.getElementById('profileUpload');
+                this.profilePreviewContainer = document.getElementById('profilePreviewContainer');
+                this.profileImagePreview = document.getElementById('profileImagePreview');
                 this.welcomeScreen = document.getElementById('welcomeScreen');
-                this.welcomeBtns = document.querySelectorAll('.welcome-btn');
+                this.thankYouOverlay = document.getElementById('thankYouOverlay');
                 this.mainAppContainer = document.getElementById('mainAppContainer');
                 this.appTitle = document.getElementById('appTitle');
                 this.appSubtitle = document.getElementById('appSubtitle');
+                this.headerSwitchBtn = document.getElementById('headerSwitchBtn');
+                this.resetUserBtn = document.getElementById('resetUserBtn');
+                this.headerProfilePic = document.getElementById('headerProfilePic');
                 this.tabs = document.querySelectorAll('.subject-tab');
                 this.solverView = document.getElementById('solverView');
+                this.historyView = document.getElementById('historyView');
                 this.quizView = document.getElementById('quizView');
-                this.helpFab = document.getElementById('helpFab');
+                this.clearHistoryBtn = document.getElementById('clearHistoryBtn');
+                this.historyList = document.getElementById('historyList');
+                this.noHistoryMessage = document.getElementById('noHistoryMessage');
+                this.viewHistoryLink = document.getElementById('viewHistoryLink');
+                this.confirmationModal = document.getElementById('confirmationModal');
+                this.modalTitle = document.getElementById('modalTitle');
+                this.modalMessage = document.getElementById('modalMessage');
+                this.modalConfirmBtn = document.getElementById('modalConfirmBtn');
+                this.modalCancelBtn = document.getElementById('modalCancelBtn');
+                this.floatingHelpBtn = document.getElementById('floatingHelpBtn');
                 this.helpModal = document.getElementById('helpModal');
-                this.closeHelpModalBtn = document.getElementById('closeHelpModalBtn');
-                this.sendHelpBtn = document.getElementById('sendHelpBtn');
-                this.helpTextarea = document.getElementById('helpTextarea');
+                this.closeHelpBtn = document.getElementById('closeHelpBtn');
+                this.moreHelpLink = document.getElementById('moreHelpLink');
+                this.feedbackModal = document.getElementById('feedbackModal');
+                this.closeFeedbackModal = document.getElementById('closeFeedbackModal');
+                this.feedbackTextarea = document.getElementById('feedbackTextarea');
+                this.sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
             },
-            bindEvents: function() {
-                this.welcomeBtns.forEach(btn => {
-                    btn.addEventListener('click', (e) => this.launchApp(e.currentTarget.dataset.choice));
-                });
-                this.tabs.forEach(tab => {
-                    tab.addEventListener('click', (e) => this.handleTabClick(e));
-                });
-                this.helpFab.addEventListener('click', () => this.showHelpModal());
-                this.closeHelpModalBtn.addEventListener('click', () => this.hideHelpModal());
-                this.sendHelpBtn.addEventListener('click', () => this.sendFeedback());
+            bindEvents() {
+                this.continueBtn.addEventListener('click', () => this.saveUser());
+                this.profilePreviewContainer.addEventListener('click', () => this.profileUploadInput.click());
+                this.profileUploadInput.addEventListener('change', (e) => this.handleProfileUpload(e));
+                this.resetUserBtn.addEventListener('click', () => this.handleResetUser());
+                document.querySelectorAll('.welcome-btn').forEach(btn => btn.addEventListener('click', (e) => this.launchApp(e.currentTarget.dataset.choice)));
+                this.headerSwitchBtn.addEventListener('click', () => this.handleSwitchClick());
+                this.tabs.forEach(tab => tab.addEventListener('click', (e) => this.handleTabClick(e)));
+                this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+                this.historyList.addEventListener('click', (e) => this.toggleHistoryAnswer(e));
+                this.modalCancelBtn.addEventListener('click', () => this.confirmationModal.classList.remove('visible'));
+                this.viewHistoryLink.addEventListener('click', (e) => { e.preventDefault(); const historyTab = document.querySelector('.subject-tab[data-view="history"]'); this.switchToView('history', historyTab); });
+                this.floatingHelpBtn.addEventListener('click', () => this.helpModal.classList.add('visible'));
+                this.closeHelpBtn.addEventListener('click', () => this.helpModal.classList.remove('visible'));
+                this.moreHelpLink.addEventListener('click', () => { this.helpModal.classList.remove('visible'); this.feedbackModal.classList.add('visible'); });
+                this.closeFeedbackModal.addEventListener('click', () => this.feedbackModal.classList.remove('visible'));
+                this.sendFeedbackBtn.addEventListener('click', () => this.sendFeedbackEmail());
+                this.helpModal.addEventListener('click', (e) => { if (e.target === this.helpModal) this.helpModal.classList.remove('visible'); });
+                this.feedbackModal.addEventListener('click', (e) => { if (e.target === this.feedbackModal) this.feedbackModal.classList.remove('visible'); });
             },
-            launchApp: function(choice) {
-                this.welcomeScreen.classList.add('hidden');
-                this.mainAppContainer.style.display = 'block';
-
-                if (choice === 'solver') {
-                    this.switchToView('solver', document.querySelector('.subject-tab[data-view="solver"]'));
-                } else if (choice === 'quiz') {
-                    this.switchToView('quiz', document.querySelector('.subject-tab[data-view="quiz"]'));
-                }
-            },
-            handleTabClick: function(e) {
-                const clickedTab = e.currentTarget;
-                const view = clickedTab.dataset.view;
-                this.switchToView(view, clickedTab);
-            },
-            switchToView: function(view, activeTab) {
-                this.tabs.forEach(t => t.classList.remove('active'));
-                activeTab.classList.add('active');
-
-                if (view === 'home') {
-                    this.welcomeScreen.classList.remove('hidden');
-                    this.mainAppContainer.style.display = 'none';
-                } else if (view === 'quiz') {
-                    this.appTitle.textContent = 'QuizGenius AI Game';
-                    this.appSubtitle.textContent = 'Challenge yourself and level up!';
-                    this.solverView.style.display = 'none';
-                    this.quizView.style.display = 'block';
-                    if (!isQuizInitialized) {
-                        QuizApp.init();
-                        isQuizInitialized = true;
-                    }
-                    QuizApp.showWelcome();
-                } else { // Solver view
-                    this.appTitle.textContent = 'Question Solver AI';
-                    this.appSubtitle.textContent = 'Solve problems with text or images';
-                    this.solverView.style.display = 'block';
-                    this.quizView.style.display = 'none';
-                    SolverApp.setActiveSubject(activeTab.dataset.subject);
-                }
-            },
-            showHelpModal: function() { this.helpModal.style.display = 'flex'; },
-            hideHelpModal: function() { this.helpModal.style.display = 'none'; },
-            sendFeedback: function() {
-                const recipientEmail = "Guptaranjeet9682@gmail.com";
-                const subject = "Feedback/Issue for AI Hub App";
-                const body = this.helpTextarea.value;
-                if (body.trim() === '') { alert('Please describe your problem before sending.'); return; }
-                const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                window.location.href = mailtoLink;
-                this.hideHelpModal(); this.helpTextarea.value = '';
-            },
+            handleProfileUpload(event) { const file = event.target.files[0]; if (!file || !file.type.startsWith('image/')) return; const reader = new FileReader(); reader.onloadend = () => { userAvatarBase64 = reader.result; this.profileImagePreview.src = userAvatarBase64; }; reader.readAsDataURL(file); },
+            handleResetUser() { this.showConfirmation('Reset App?', 'This will clear your name, profile picture, solver history, and quiz progress. Are you sure?', 'Reset All', () => { localStorage.removeItem('quizGeniusUserName'); localStorage.removeItem('quizGeniusUserAvatar'); localStorage.removeItem('solverHistory'); localStorage.removeItem('quizGeniusProgress'); window.location.reload(); }, 'danger-btn'); },
+            checkUser() { const userName = localStorage.getItem('quizGeniusUserName'); if (userName) { this.welcomeScreen.style.display = 'flex'; this.updateHeaderGreeting(userName); } else { this.namePromptScreen.style.display = 'flex'; } },
+            saveUser() { const userName = this.nameInput.value.trim(); if (userName) { localStorage.setItem('quizGeniusUserName', userName); if (userAvatarBase64) { localStorage.setItem('quizGeniusUserAvatar', userAvatarBase64); } this.namePromptScreen.style.display = 'none'; this.welcomeScreen.style.display = 'flex'; this.updateHeaderGreeting(userName); } else { alert('Please enter your name!'); } },
+            updateHeaderGreeting(fullName) { const firstName = fullName.split(' ')[0]; const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]; this.appSubtitle.innerHTML = `Welcome, ${firstName}! <br><span style="font-size: 0.85em; opacity: 0.85;">${randomQuote}</span>`; const avatar = localStorage.getItem('quizGeniusUserAvatar'); if (avatar) { this.headerProfilePic.src = avatar; this.headerProfilePic.style.display = 'block'; } else { this.headerProfilePic.style.display = 'none'; } },
+            sendFeedbackEmail() { const feedbackText = this.feedbackTextarea.value.trim(); if (!feedbackText) { alert('Please describe your issue or feedback before sending.'); return; } const subject = 'Feedback/Help Request from QuizGenius AI'; const body = `User Feedback:\n\n${feedbackText}`; const mailtoLink = `mailto:Guptaranjeet9682@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; window.location.href = mailtoLink; this.feedbackTextarea.value = ''; this.feedbackModal.classList.remove('visible'); },
+            launchApp(choice) { this.welcomeScreen.style.display = 'none'; this.mainAppContainer.style.display = 'block'; if (choice === 'solver') { this.switchToView('solver', document.querySelector('.subject-tab[data-view="solver"]')); } else { this.switchToView('quiz', document.querySelector('.subject-tab[data-subject="general"]')); } },
+            handleTabClick(e) { const clickedTab = e.currentTarget; const view = clickedTab.dataset.view; if (view === 'home') { this.showConfirmation('Exit to Home?', 'Are you sure you want to exit?', 'Exit', () => this.confirmExit(), 'danger-btn'); } else { this.switchToView(view, clickedTab); } },
+            handleSwitchClick() { const isSolverVisible = this.solverView.style.display === 'block' || this.historyView.style.display === 'block'; const action = isSolverVisible ? () => this.switchToView('quiz', document.querySelector('.subject-tab[data-subject="general"]')) : () => this.switchToView('solver', document.querySelector('.subject-tab[data-subject="general"]')); this.showConfirmation('Switch Feature?', `Are you sure you want to switch to the ${isSolverVisible ? 'Quiz Game' : 'AI Solver'}?`, 'Switch', action); },
+            switchToView(view, activeTab) { this.tabs.forEach(t => t.classList.remove('active')); this.solverView.style.display = 'none'; this.quizView.style.display = 'none'; this.historyView.style.display = 'none'; if (view === 'quiz') { const quizDefaultTab = document.querySelector('.subject-tab[data-subject="general"]'); if (quizDefaultTab) quizDefaultTab.classList.add('active'); this.appTitle.textContent = 'QuizGenius AI Game'; this.quizView.style.display = 'block'; this.headerSwitchBtn.innerHTML = 'AI 💡 Solver'; if (!isQuizInitialized) { QuizApp.init(); isQuizInitialized = true; } QuizApp.showWelcome(); } else if (view === 'history') { activeTab.classList.add('active'); this.appTitle.textContent = 'Solver History'; this.historyView.style.display = 'block'; this.headerSwitchBtn.innerHTML = 'Play ❤️ Quiz'; this.renderHistory(); } else { activeTab.classList.add('active'); this.appTitle.textContent = 'Question Solver AI'; this.solverView.style.display = 'block'; this.headerSwitchBtn.innerHTML = 'Play ❤️ Quiz'; if (view === 'solver') SolverApp.setActiveSubject(activeTab.dataset.subject); } },
+            showConfirmation(title, message, confirmText, onConfirm, confirmClass = 'confirm-btn') { this.modalTitle.textContent = title; this.modalMessage.textContent = message; this.modalConfirmBtn.textContent = confirmText; this.modalConfirmBtn.className = `modal-btn ${confirmClass}`; this.modalConfirmBtn.onclick = () => { this.confirmationModal.classList.remove('visible'); onConfirm(); }; this.confirmationModal.classList.add('visible'); },
+            confirmExit() { this.thankYouOverlay.classList.add('visible'); setTimeout(() => { this.thankYouOverlay.classList.remove('visible'); this.mainAppContainer.style.display = 'none'; this.welcomeScreen.style.display = 'flex'; }, 1500); },
+            renderHistory() { let history = []; try { history = JSON.parse(localStorage.getItem('solverHistory') || '[]'); } catch (e) { console.error("Could not parse solver history. Resetting history.", e); localStorage.removeItem('solverHistory'); } this.noHistoryMessage.style.display = history.length === 0 ? 'block' : 'none'; this.historyList.innerHTML = history.map(item => `<div class="history-item"><div class="history-question">${item.question.substring(0, 100)}${item.question.length > 100 ? '...' : ''}</div><div class="history-date">${new Date(item.date).toLocaleString()}</div><div class="history-answer">${item.answer}</div></div>`).join(''); },
+            toggleHistoryAnswer(e) { const item = e.target.closest('.history-item'); if (item) item.querySelector('.history-answer').classList.toggle('visible'); },
+            clearHistory() { this.showConfirmation('Clear History?', 'This will permanently delete all your saved questions and answers.', 'Delete All', () => { localStorage.removeItem('solverHistory'); this.renderHistory(); }, 'danger-btn'); }
         };
 
-        // --- QUESTION SOLVER APP ---
         const SolverApp = {
-            API_KEY: 'AIzaSyCd327VXNMH3hepIXKr-CfEo2JJTvwGm18',
-            selectedSubject: 'general', currentMode: 'text', isProcessing: false, uploadedImage: null,
-            init: function() { this.cacheDOMElements(); this.bindEvents(); },
-            cacheDOMElements: function() { this.modeBtns = document.querySelectorAll('.mode-btn'); this.imageUploadArea = document.getElementById('imageMode'); this.imageInput = document.getElementById('imageInput'); this.questionInputEl = document.getElementById('questionInput'); this.solveBtn = document.getElementById('solveBtn'); this.textModeEl = document.getElementById('textMode'); this.imageModeEl = document.getElementById('imageMode'); this.imagePreviewEl = document.getElementById('imagePreview'); this.errorAlertEl = document.getElementById('errorAlert'); this.loadingEl = document.getElementById('loading'); this.resultCardEl = document.getElementById('resultCard'); this.resultContentEl = document.getElementById('resultContent'); },
-            bindEvents: function() { this.modeBtns.forEach(btn => btn.addEventListener('click', (e) => this.handleModeSwitch(e))); this.imageUploadArea.addEventListener('click', () => this.imageInput.click()); this.imageInput.addEventListener('change', (e) => this.handleImageUpload(e)); this.imageUploadArea.addEventListener('dragover', (e) => this.handleDragOver(e)); this.imageUploadArea.addEventListener('drop', (e) => this.handleDrop(e)); this.imageUploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e)); this.solveBtn.addEventListener('click', () => this.solveQuestion()); },
-            setActiveSubject: function(subject) { this.selectedSubject = subject; },
-            handleModeSwitch: function(e) { const btn = e.currentTarget; this.modeBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); this.currentMode = btn.dataset.mode; this.switchMode(this.currentMode); },
-            switchMode: function(mode) { if (mode === 'text') { this.textModeEl.style.display = 'block'; this.imageModeEl.style.display = 'none'; this.clearImage(); } else { this.textModeEl.style.display = 'none'; this.imageModeEl.style.display = 'block'; } },
-            handleDragOver: function(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); },
-            handleDragLeave: function(e) { e.currentTarget.classList.remove('dragover'); },
-            handleDrop: function(e) { e.preventDefault(); e.currentTarget.classList.remove('dragover'); const files = e.dataTransfer.files; if (files.length > 0) this.processImageFile(files[0]); },
-            handleImageUpload: function(e) { const file = e.target.files[0]; if (file) this.processImageFile(file); },
-            processImageFile: function(file) { if (!file.type.startsWith('image/')) { this.showError('Please select a valid image file.'); return; } const reader = new FileReader(); reader.onload = (e) => { this.uploadedImage = { data: e.target.result.split(',')[1], mimeType: file.type }; this.showImagePreview(e.target.result); }; reader.readAsDataURL(file); },
-            showImagePreview: function(src) { this.imagePreviewEl.innerHTML = `<div class="image-container"><img src="${src}" class="uploaded-image" alt="Uploaded question"><button class="remove-image-btn" onclick="SolverApp.clearImage()">×</button></div>`; },
-            clearImage: function() { this.uploadedImage = null; this.imagePreviewEl.innerHTML = ''; this.imageInput.value = ''; },
-            showError: function(message) { this.errorAlertEl.textContent = message; this.errorAlertEl.style.display = 'block'; setTimeout(() => { this.errorAlertEl.style.display = 'none'; }, 5000); },
-            formatResponse: function(text) { let html = text.replace(/</g, "<").replace(/>/g, ">"); html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/`(.*?)`/g, '<code>$1</code>'); html = html.replace(/```(\w*?)\n([\s\S]+?)```/g, (match, lang, code) => `<pre><code class="language-${lang}">${code}</code></pre>`); html = html.replace(/^(?:\s*[\*\-]\s.+\n?)+/gm, match => `<ul>${match.trim().split('\n').map(line => `<li>${line.replace(/^\s*[\*\-]\s*/, '')}</li>`).join('')}</ul>`); return html.split('\n').map(line => line.trim() ? (line.match(/^<\/?(ul|li|pre|code|strong|em)/) ? line : `<p>${line}</p>`) : '').join(''); },
-            solveQuestion: async function() { if (this.isProcessing) return; const questionText = this.questionInputEl.value.trim(); if (this.currentMode === 'text' && !questionText) { this.showError('Please enter a question!'); return; } if (this.currentMode === 'image' && !this.uploadedImage) { this.showError('Please upload an image!'); return; } this.isProcessing = true; this.solveBtn.disabled = true; this.loadingEl.style.display = 'block'; this.resultCardEl.style.display = 'none'; this.errorAlertEl.style.display = 'none'; try { const prompt = this.createPrompt(questionText, this.selectedSubject); const response = await this.callGeminiAPI(prompt, this.uploadedImage); this.resultContentEl.innerHTML = this.formatResponse(response); this.resultCardEl.style.display = 'block'; this.resultCardEl.scrollIntoView({ behavior: 'smooth' }); } catch (error) { console.error('Error:', error); this.showError('An error occurred: ' + error.message); } finally { this.isProcessing = false; this.solveBtn.disabled = false; this.loadingEl.style.display = 'none'; } },
-            createPrompt: function(question, subject) { const basePrompt = { general: "Answer the following question clearly:", math: "Solve this math problem step-by-step:", physics: "Explain this physics concept:", chemistry: "Explain this chemistry concept:", biology: "Explain this biology concept:", hindi: "Answer this question in Hindi:", english: "Help with this English question:" }[subject] || "Answer the question:"; let fullPrompt = basePrompt + (this.currentMode === 'image' ? "\n\nAnalyze the attached image. If it contains a question, solve it." + (question ? "\n\nAdditional context: " + question : "") : "\n\nQuestion: " + question); return fullPrompt; },
-            callGeminiAPI: async function(prompt, imageData = null) { const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${this.API_KEY}`; const requestBody = { contents: [{ parts: imageData ? [{ text: prompt }, { inline_data: { mime_type: imageData.mimeType, data: imageData.data } }] : [{ text: prompt }] }] }; const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }); if (!response.ok) { const errorData = await response.json(); throw new Error(`API Error: ${response.status} - ${errorData.error?.message}`); } const data = await response.json(); return data.candidates[0].content.parts[0].text; }
-        };
+            // DELETED THE API_KEY FROM HERE FOR SECURITY
+            imageData: null,
+            init() { this.cacheDOMElements(); this.bindEvents(); },
+            cacheDOMElements() { this.questionInputEl = document.getElementById('questionInput'); this.solveBtn = document.getElementById('solveBtn'); this.loadingEl = document.getElementById('loading'); this.resultCardEl = document.getElementById('resultCard'); this.resultContentEl = document.getElementById('resultContent'); this.imageInputEl = document.getElementById('imageInput'); this.imagePreviewContainer = document.getElementById('imagePreviewContainer'); this.imagePreview = document.getElementById('imagePreview'); this.removeImageBtn = document.getElementById('removeImageBtn'); this.textModeBtn = document.getElementById('textModeBtn'); this.imageModeBtn = document.getElementById('imageModeBtn'); },
+            bindEvents() { this.solveBtn.addEventListener('click', () => this.solveQuestion()); this.imageInputEl.addEventListener('change', (e) => this.handleImageUpload(e)); this.removeImageBtn.addEventListener('click', () => this.removeImage()); this.textModeBtn.addEventListener('click', () => this.switchToTextMode()); this.imageModeBtn.addEventListener('click', () => this.imageInputEl.click()); },
+            switchToTextMode() { this.removeImage(); this.questionInputEl.focus(); },
+            handleImageUpload(event) { const file = event.target.files[0]; if (!file || !file.type.startsWith('image/')) { return; } const reader = new FileReader(); reader.onloadend = () => { const base64String = reader.result.split(',')[1]; this.imageData = { mimeType: file.type, data: base64String }; this.imagePreview.src = reader.result; this.imagePreviewContainer.style.display = 'block'; this.textModeBtn.classList.remove('active'); this.imageModeBtn.classList.add('active'); }; reader.readAsDataURL(file); },
+            removeImage() { this.imageData = null; this.imageInputEl.value = ''; this.imagePreviewContainer.style.display = 'none'; this.imagePreview.src = '#'; this.textModeBtn.classList.add('active'); this.imageModeBtn.classList.remove('active'); },
+            async solveQuestion() {
+                const questionText = this.questionInputEl.value.trim();
+                if (!questionText && !this.imageData) { alert('Please enter a question or upload an image!'); return; }
+                this.loadingEl.style.display = 'block'; this.resultCardEl.style.display = 'none';
+                const parts = [];
+                let historyQuestion = questionText;
+                if (questionText) { parts.push({ text: questionText }); } else if (this.imageData) { parts.push({ text: "What is in this image? Describe it or solve the problem shown." }); historyQuestion = "Image-based question"; }
+                if (this.imageData) { parts.push({ inline_data: { mime_type: this.imageData.mimeType, data: this.imageData.data } }); }
+                try {
+                    // UPDATED: Now calls your own server endpoint, not Google directly.
+                    const url = '/api/solve';
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: parts }] })
+                    });
 
-        // --- QUIZ GAME APP ---
-        const QuizApp = {
-            quizQuestions: {
-                levels: [
-                    { name: "Level 1", difficulty: "Easy", questions: [ { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris", "Rome"], answer: "Paris", hint: "It's known as the 'City of Love'." }, { question: "Which planet is known as the Red Planet?", options: ["Earth", "Mars", "Jupiter", "Saturn"], answer: "Mars", hint: "It's the fourth planet from the Sun." }, { question: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: "Pacific", hint: "It covers about one-third of the surface of the Earth." }, { question: "Who wrote 'Hamlet'?", options: ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Mark Twain"], answer: "William Shakespeare", hint: "An English playwright, poet, and actor." }, { question: "What is H2O commonly known as?", options: ["Salt", "Sugar", "Water", "Oxygen"], answer: "Water", hint: "Essential for all known forms of life." } ] },
-                    { name: "Level 2", difficulty: "Medium", questions: [ { question: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondrion", "Cell Wall"], answer: "Mitochondrion", hint: "It generates most of the cell's supply of ATP." }, { question: "Which country is home to the kangaroo?", options: ["South Africa", "India", "Australia", "Brazil"], answer: "Australia", hint: "A large island continent." }, { question: "What is the hardest natural substance on Earth?", options: ["Gold", "Iron", "Diamond", "Quartz"], answer: "Diamond", hint: "A form of carbon, often used in jewelry." }, { question: "Who painted the Mona Lisa?", options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Claude Monet"], answer: "Leonardo da Vinci", hint: "An Italian polymath of the High Renaissance." }, { question: "What is the currency of Japan?", options: ["Yuan", "Won", "Yen", "Baht"], answer: "Yen", hint: "Symbolized by ¥." } ] },
-                    ...Array.from({ length: 13 }, (_, i) => ({ name: `Level ${i + 3}`, difficulty: i < 5 ? "Hard" : "Expert", questions: [ { question: `This is a sample question for level ${i + 3}. What is the correct answer?`, options: [`Answer ${i+3}A`, `Answer ${i+3}B`, `Answer ${i+3}C`, `Answer ${i+3}D`], answer: `Answer ${i+3}A`, hint: `This is a hint for level ${i + 3}.` } ] }))
-                ]
-            },
-            currentLevel: 0, currentQuestionIndex: 0, score: 0, timer: null,
-            init: function() { this.cacheDOMElements(); this.bindEvents(); },
-            cacheDOMElements: function() {
-                this.quizWelcomeModal = document.getElementById('quiz-welcome-modal');
-                this.welcomeStatsContainer = document.getElementById('welcome-stats');
-                this.startQuizActualBtn = document.getElementById('startQuizActualBtn');
-                this.quizSection = document.getElementById('quiz');
-                this.levelDotsContainer = document.querySelector('.level-progress');
-                this.currentLevelElement = document.getElementById('current-level');
-                this.totalLevelsElement = document.getElementById('total-levels');
-                this.currentQuestionElement = document.getElementById('current-question');
-                this.totalQuestionsElement = document.getElementById('total-questions');
-                this.currentScoreElement = document.getElementById('current-score');
-                this.timerElement = document.getElementById('timer');
-                this.questionTextElement = document.getElementById('question-text');
-                this.optionsContainer = document.getElementById('options-container');
-                this.nextBtn = document.getElementById('next-btn');
-                this.restartBtn = document.getElementById('restart-btn');
-                this.resultsSection = document.getElementById('results');
-                this.finalScoreElement = document.getElementById('final-score');
-            },
-            bindEvents: function() {
-                this.nextBtn.addEventListener('click', () => this.nextQuestion());
-                this.restartBtn.addEventListener('click', () => this.restartQuiz());
-                this.startQuizActualBtn.addEventListener('click', () => this.startQuiz());
-            },
-            showWelcome: function() {
-                this.quizSection.style.display = 'none';
-                this.resultsSection.style.display = 'none';
-                this.quizWelcomeModal.style.display = 'flex';
-                const lastPlayed = localStorage.getItem('quizLastPlayed');
-                const lastPlayedDate = lastPlayed ? new Date(parseInt(lastPlayed)).toLocaleString() : "Never";
-                const levelData = this.quizQuestions.levels[0];
-                this.welcomeStatsContainer.innerHTML = `
-                    <div class="welcome-stat"><strong>Levels</strong><span>${this.quizQuestions.levels.length} Available</span></div>
-                    <div class="welcome-stat"><strong>Difficulty</strong><span>${levelData.difficulty} (Starts)</span></div>
-                    <div class="welcome-stat"><strong>Questions</strong><span>${levelData.questions.length} per level</span></div>
-                    <div class="welcome-stat"><strong>Points</strong><span>+10 per correct</span></div>
-                    <div class="welcome-stat" style="grid-column: 1 / -1;"><strong>Last Played</strong><span>${lastPlayedDate}</span></div>
-                `;
-            },
-            startQuiz: function() {
-                this.quizWelcomeModal.style.display = 'none';
-                this.quizSection.style.display = 'block';
-                this.resultsSection.style.display = 'none';
-                this.score = 0; this.currentLevel = 0; this.currentQuestionIndex = 0;
-                this.currentScoreElement.textContent = this.score;
-                this.totalLevelsElement.textContent = this.quizQuestions.levels.length;
-                this.startLevel(0);
-            },
-            startLevel: function(levelIndex) { this.currentLevel = levelIndex; this.currentQuestionIndex = 0; this.updateLevelDots(); this.loadQuestion(); },
-            updateLevelDots: function() { const dots = this.levelDotsContainer.querySelectorAll('.level-dot'); dots.forEach((dot, index) => { dot.classList.remove('active'); if (index < this.currentLevel) { dot.style.backgroundColor = '#6b48ff'; } else if (index === this.currentLevel) { dot.classList.add('active'); dot.style.backgroundColor = ''; } else { dot.style.backgroundColor = ''; } }); },
-            loadQuestion: function() {
-                const levelData = this.quizQuestions.levels[this.currentLevel];
-                if (this.currentQuestionIndex >= levelData.questions.length) {
-                    if (this.currentLevel < this.quizQuestions.levels.length - 1) { this.startLevel(this.currentLevel + 1); } else { this.showResults(); }
-                    return;
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API Error: ${response.status} - ${errorData.error ? errorData.error.message : 'Unknown error'}`);
+                    }
+                    const data = await response.json();
+                    if (!data.candidates || data.candidates.length === 0) { throw new Error("No response from AI. The content may have been blocked."); }
+                    const answer = data.candidates[0].content.parts[0].text;
+                    this.resultContentEl.innerHTML = answer.replace(/\n/g, '<br>');
+                    this.resultCardEl.style.display = 'block';
+                    this.saveToHistory(historyQuestion, answer);
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.resultContentEl.textContent = `Sorry, an error occurred while contacting the AI. This might be a temporary issue or a problem with the configuration. Please try again later.`;
+                    this.resultCardEl.style.display = 'block';
+                } finally {
+                    this.loadingEl.style.display = 'none';
+                    this.questionInputEl.value = '';
+                    this.removeImage();
                 }
-                this.currentLevelElement.textContent = this.currentLevel + 1;
-                this.currentQuestionElement.textContent = this.currentQuestionIndex + 1;
-                this.totalQuestionsElement.textContent = levelData.questions.length;
-
-                const q = levelData.questions[this.currentQuestionIndex];
-                this.questionTextElement.textContent = q.question;
-                this.optionsContainer.innerHTML = '';
-                q.options.forEach(option => {
-                    const optEl = document.createElement('div');
-                    optEl.className = 'option';
-                    optEl.textContent = option;
-                    optEl.addEventListener('click', () => this.selectOption(optEl, q.answer));
-                    this.optionsContainer.appendChild(optEl);
-                });
-                this.nextBtn.style.display = 'none';
             },
-            selectOption: function(selectedEl, correctAnswer) {
-                document.querySelectorAll('.option').forEach(el => el.classList.add('disabled'));
-                if (selectedEl.textContent === correctAnswer) { selectedEl.classList.add('correct'); this.score += 10; this.currentScoreElement.textContent = this.score; } else { selectedEl.classList.add('incorrect'); }
-                this.nextBtn.style.display = 'block';
-            },
-            nextQuestion: function() { this.currentQuestionIndex++; this.loadQuestion(); },
-            showResults: function() { 
-                localStorage.setItem('quizLastPlayed', Date.now().toString());
-                this.quizSection.style.display = 'none';
-                this.resultsSection.style.display = 'block'; 
-                this.finalScoreElement.textContent = `Your Final Score: ${this.score}`;
-            },
-            restartQuiz: function() { this.showWelcome(); }
+            saveToHistory(question, answer) { let history = []; try { history = JSON.parse(localStorage.getItem('solverHistory') || '[]'); } catch (e) { localStorage.removeItem('solverHistory'); } const newEntry = { question, answer, date: new Date().toISOString() }; history.unshift(newEntry); localStorage.setItem('solverHistory', JSON.stringify(history.slice(0, 20))); },
+            setActiveSubject(subject) { this.questionInputEl.placeholder = `Type your ${subject} question here...`; }
         };
 
-        // Initialize the main application controller
-        document.addEventListener('DOMContentLoaded', () => {
-            App.init();
-            SolverApp.init(); // Solver is always initialized
-        });
+        const QuizApp = {
+            quizQuestions: { levels: [ { name: "Level 1", difficulty: "Easy", questions: [ { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris", "Rome"], answer: "Paris" }, { question: "Which planet is known as the Red Planet?", options: ["Earth", "Mars", "Jupiter", "Saturn"], answer: "Mars" }, { question: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: "Pacific" }, { question: "Who wrote 'Hamlet'?", options: ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Mark Twain"], answer: "William Shakespeare" }, { question: "What is H2O commonly known as?", options: ["Salt", "Sugar", "Water", "Oxygen"], answer: "Water" }, { question: "How many continents are there?", options: ["5", "6", "7", "8"], answer: "7" }, { question: "What is the tallest mammal?", options: ["Elephant", "Giraffe", "Whale", "Rhino"], answer: "Giraffe" }, { question: "Which is the largest country by area?", options: ["Canada", "China", "USA", "Russia"], answer: "Russia" }, { question: "What color is a ruby?", options: ["Blue", "Green", "Red", "Yellow"], answer: "Red" }, { question: "In which country are the pyramids of Giza located?", options: ["Greece", "Egypt", "Mexico", "Sudan"], answer: "Egypt" } ] }, { name: "Level 2", difficulty: "Medium", questions: [ { question: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondrion", "Cell Wall"], answer: "Mitochondrion" }, { question: "Which country is home to the kangaroo?", options: ["South Africa", "India", "Australia", "Brazil"], answer: "Australia" }, { question: "What is the hardest natural substance on Earth?", options: ["Gold", "Iron", "Diamond", "Quartz"], answer: "Diamond" }, { question: "Who painted the Mona Lisa?", options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Claude Monet"], answer: "Leonardo da Vinci" }, { question: "What is the currency of Japan?", options: ["Yuan", "Won", "Yen", "Baht"], answer: "Yen" }, { question: "Which element has the chemical symbol 'O'?", options: ["Oxygen", "Gold", "Osmium", "Oganesson"], answer: "Oxygen" }, { question: "How many sides does a hexagon have?", options: ["5", "6", "7", "8"], answer: "6" }, { question: "Who was the first person to walk on the moon?", options: ["Buzz Aldrin", "Yuri Gagarin", "Michael Collins", "Neil Armstrong"], answer: "Neil Armstrong" }, { question: "What is the main ingredient in guacamole?", options: ["Tomato", "Onion", "Avocado", "Lime"], answer: "Avocado" }, { question: "Which of these is a primary color?", options: ["Green", "Orange", "Blue", "Purple"], answer: "Blue" } ] }, ...Array.from({ length: 13 }, (_, i) => ({ name: `Level ${i + 3}`, difficulty: i < 3 ? "Hard" : i < 8 ? "Expert" : "Genius", questions: Array.from({ length: 10 }, (_, j) => ({ question: `Sample question #${j + 1} for Level ${i + 3}. What is the correct answer?`, options: [`Correct Answer ${j + 1}`, `Wrong Answer B`, `Wrong Answer C`, `Wrong Answer D`], answer: `Correct Answer ${j + 1}` })) })) ] },
+            currentLevel: 0, currentQuestionIndex: 0, score: 0, timerInterval: null, timeLeft: 0,
+            init() { this.cacheDOMElements(); this.bindEvents(); },
+            cacheDOMElements() { this.welcomeModal = document.getElementById('quiz-welcome-modal'); this.welcomeStats = document.getElementById('welcome-stats'); this.startBtn = document.getElementById('startQuizActualBtn'); this.quizSection = document.getElementById('quiz'); this.currentLevelEl = document.getElementById('current-level'); this.totalLevelsEl = document.getElementById('total-levels'); this.currentQuestionEl = document.getElementById('current-question'); this.totalQuestionsEl = document.getElementById('total-questions'); this.currentScoreEl = document.getElementById('current-score'); this.timerEl = document.getElementById('timer'); this.questionTextEl = document.getElementById('question-text'); this.optionsContainer = document.getElementById('options-container'); this.nextBtn = document.getElementById('next-btn'); this.restartBtn = document.getElementById('restart-btn'); this.resultsSection = document.getElementById('results'); this.finalScoreEl = document.getElementById('final-score'); },
+            bindEvents() { this.nextBtn.addEventListener('click', () => this.nextQuestion()); this.restartBtn.addEventListener('click', () => this.restartQuiz()); this.startBtn.addEventListener('click', () => this.startQuiz()); },
+            shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } return array; },
+            showWelcome() { this.quizSection.style.display = 'none'; this.resultsSection.style.display = 'none'; this.welcomeModal.classList.add('visible'); const progress = this.loadProgress(); const levelData = this.quizQuestions.levels[progress.currentLevel]; this.welcomeStats.innerHTML = `<div class="welcome-stat"><strong>Current Level</strong><span>${progress.currentLevel + 1}/${this.quizQuestions.levels.length}</span></div><div class="welcome-stat"><strong>Next Question</strong><span>${progress.currentQuestionIndex + 1}/${levelData.questions.length}</span></div><div class="welcome-stat"><strong>Current Score</strong><span>${progress.score}</span></div><div class="welcome-stat"><strong>Level Difficulty</strong><span>${levelData.difficulty}</span></div>`; },
+            loadProgress() {
+                const saved = localStorage.getItem('quizGeniusProgress');
+                if (saved) {
+                    try {
+                        const p = JSON.parse(saved);
+                        if (p.currentLevel !== undefined && p.currentQuestionIndex !== undefined && p.score !== undefined) {
+                            this.currentLevel = p.currentLevel;
+                            this.currentQuestionIndex = p.currentQuestionIndex;
+                            this.score = p.score;
+                            return p;
+                        }
+                    } catch (e) {
+                        console.error("Could not parse quiz progress. Resetting.", e);
+                        localStorage.removeItem('quizGeniusProgress');
+                    }
+                }
+                return { currentLevel: 0, currentQuestionIndex: 0, score: 0 };
+            },
+            saveProgress() { const p = { currentLevel: this.currentLevel, currentQuestionIndex: this.currentQuestionIndex, score: this.score }; localStorage.setItem('quizGeniusProgress', JSON.stringify(p)); },
+            startQuiz() { this.welcomeModal.classList.remove('visible'); this.quizSection.style.display = 'block'; this.loadProgress(); this.currentScoreEl.textContent = this.score; this.totalLevelsEl.textContent = this.quizQuestions.levels.length; this.startLevel(this.currentLevel); },
+            startLevel(levelIndex) { this.currentLevel = levelIndex; this.loadQuestion(); },
+            loadQuestion() { const levelData = this.quizQuestions.levels[this.currentLevel]; if (this.currentQuestionIndex >= levelData.questions.length) { this.currentQuestionIndex = 0; if (this.currentLevel < this.quizQuestions.levels.length - 1) { this.startLevel(this.currentLevel + 1); } else { this.showResults(); } return; } this.currentLevelEl.textContent = this.currentLevel + 1; this.currentQuestionEl.textContent = this.currentQuestionIndex + 1; this.totalQuestionsEl.textContent = levelData.questions.length; const q = levelData.questions[this.currentQuestionIndex]; this.questionTextEl.textContent = q.question; this.optionsContainer.innerHTML = ''; const shuffledOptions = this.shuffleArray([...q.options]); shuffledOptions.forEach(o => { const el = document.createElement('div'); el.className = 'option'; el.textContent = o; el.addEventListener('click', () => this.selectOption(el, q.answer)); this.optionsContainer.appendChild(el); }); this.nextBtn.style.display = 'none'; this.startTimer(); },
+            startTimer() { clearInterval(this.timerInterval); this.timeLeft = 30; this.timerEl.textContent = this.timeLeft; this.timerEl.classList.remove('warning'); this.timerInterval = setInterval(() => { this.timeLeft--; this.timerEl.textContent = this.timeLeft; if (this.timeLeft < 10) this.timerEl.classList.add('warning'); if (this.timeLeft <= 0) { clearInterval(this.timerInterval); this.handleTimeOut(); } }, 1000); },
+            handleTimeOut() { this.revealAnswer(this.quizQuestions.levels[this.currentLevel].questions[this.currentQuestionIndex].answer); },
+            selectOption(el, answer) { clearInterval(this.timerInterval); if (el.textContent === answer) { el.classList.add('correct'); this.score += 10; this.currentScoreEl.textContent = this.score; } else { el.classList.add('incorrect'); } this.revealAnswer(answer); },
+            revealAnswer(answer) { this.optionsContainer.querySelectorAll('.option').forEach(o => { o.classList.add('disabled'); if (o.textContent === answer) o.classList.add('correct'); }); this.nextBtn.style.display = 'block'; },
+            nextQuestion() { this.currentQuestionIndex++; this.saveProgress(); this.loadQuestion(); },
+            showResults() { localStorage.removeItem('quizGeniusProgress'); this.quizSection.style.display = 'none'; this.resultsSection.style.display = 'block'; this.finalScoreEl.textContent = `Your Final Score: ${this.score}`; },
+            restartQuiz() { localStorage.removeItem('quizGeniusProgress'); this.currentLevel = 0; this.currentQuestionIndex = 0; this.score = 0; this.showWelcome(); }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => { App.init(); SolverApp.init(); });
     })();
     </script>
 </body>
-  </html>
+    </html>
