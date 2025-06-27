@@ -1,1 +1,1 @@
-This file for icons
+This folder will have app icons.
